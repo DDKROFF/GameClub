@@ -1,0 +1,13 @@
+:root {
+    --gold: #F4C542;
+    --gold-dark: #e0aa2e;
+    --gradient-gold: linear-gradient(135deg, #F4C542, #E0A82B);
+    --pc-border: #b19cd9;
+    --pc-bg: rgba(177, 156, 217, 0.12);
+    --con-border: #3b82f6;
+    --con-bg: rgba(59, 130, 246, 0.12);
+    --entrance-border: #F4C542;
+    --entrance-bg: rgba(244, 197, 66, 0.12);
+}
+
+
