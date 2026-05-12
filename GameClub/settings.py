@@ -20,6 +20,7 @@ INSTALLED_APPS = [
     'GameClub',
     'devices',
     'main',
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -88,3 +89,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+AUTH_USER_MODEL = 'users.CustomUser'
+AUTHENTICATION_BACKENDS = [
+    'yourapp.backends.MultiFieldAuthBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+LOGIN_REDIRECT_URL = 'applications'

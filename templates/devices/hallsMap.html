@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>КиберКлуб | Карта залов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+<body>
+<header class="navbar-full">
+    <div class="navbar">
+        <div class="logo"><span>G</span>Five • CLUB</div>
+    </div>
+
+    <div class="tabs-wrapper">
+        <div class="single-tab">
+            <a href="{% url 'main:home' %}" class="tab-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="#" class="tab-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="{% url 'main:hallMap' %}" class="tab-link"><i class="fas fa-gamepad"></i> Карта клуба</a>
+            <a href="#" class="tab-link"><i class="fas fa-address-card"></i> Контакты</a>
+            <a href="#" class="tab-link"><i class="fas fa-trophy"></i> Киберспорт</a>
+            <a href="#" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
+        </div>
+    </div>
+</header>
+
+<section class="container" style="padding-top: 70px">
+    <div class="club-header">
+        <h1 class="club-title"><i class="fas fa-map-marked-alt" style="color: var(--gold); margin-right: 12px;"></i> План залов</h1>
+        <div class="controls">
+            <span class="last-updated">Обновлено: <span id="lastUpdatedTime">—</span></span>
+            <button class="hmbtn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Обновить</button>
+            <button class="hmbtn hmbtn--primary" id="autoRefreshToggle">Автообновление: ВКЛ</button>
+        </div>
+    </div>
+
+    <div id="hallsContainer"></div>
+</section>
+
+<footer class="footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>СИСТЕМНЫЕ ХАРАКТЕРИСТИКИ</h4>
+                <ul>
+                    <li><i class="fas fa-microchip"></i> Видеокарты: RTX 4090 / RTX 5080</li>
+                    <li><i class="fas fa-memory"></i> Процессоры: i9-14900K / Ryzen 9</li>
+                    <li><i class="fas fa-headphones"></i> Гарнитуры: HyperX Cloud III</li>
+                    <li><i class="fas fa-keyboard"></i> Периферия: Razer Huntsman / Logitech</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>ДЛЯ КЛУБА</h4>
+                <ul>
+                    <li><i class="fas fa-clock"></i> Круглосуточно 24/7</li>
+                    <li><i class="fas fa-plug"></i> Стабилизаторы + ИБП</li>
+                    <li><i class="fas fa-shield-alt"></i> Защита от DDoS</li>
+                    <li><i class="fas fa-tachometer-alt"></i> Интернет: 2 Гбит/с</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>ПОЛЬЗОВАТЕЛЯМ</h4>
+                <ul>
+                    <li><i class="fas fa-id-card"></i> Чип-ключи 24/7</li>
+                    <li><i class="fas fa-coffee"></i> Кофемашина Jura</li>
+                    <li><i class="fas fa-wind"></i> Климат-контроль</li>
+                    <li><i class="fas fa-lock"></i> Сейфы для вещей</li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>СВЯЗЬ</h4>
+                <ul>
+                    <li><i class="fas fa-phone-alt"></i> +7 (495) 777-77-07</li>
+                    <li><i class="fas fa-envelope"></i> club@gfive.ru</li>
+                    <li><i class="fab fa-telegram"></i> t.me/gfive_club</li>
+                    <li><i class="fab fa-discord"></i> discord.gg/gfive</li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div>© 2025 GFive Computer Club — территория высоких скоростей</div>
+            <div class="social-icons">
+                <i class="fab fa-vk"></i>
+                <i class="fab fa-telegram"></i>
+                <i class="fab fa-discord"></i>
+                <i class="fab fa-twitch"></i>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="{% static 'js/hallsMap.js' %}"></script>
+</body>
+</html>

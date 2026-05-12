@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Вход в аккаунт</h2>
+      <p class="auth-subtitle">Введите телефон, email или логин</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="auth-errors">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="input-group">
+        <i class="fas fa-user"></i>
+        {{ form.identity }}
+        {{ form.identity.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        {{ form.password }}
+        {{ form.password.errors }}
+      </div>
+
+      <button type="submit" class="btn-gold">
+        <i class="fas fa-sign-in-alt"></i> Войти
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Нет аккаунта? <a href="{% url 'register' %}">Зарегистрируйтесь</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

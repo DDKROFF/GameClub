@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Регистрация{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <h2>Создать аккаунт</h2>
+      <p class="auth-subtitle">Все поля обязательны для заполнения</p>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+
+      {% if form.non_field_errors %}
+        <div class="auth-errors">
+          {% for error in form.non_field_errors %}
+            <p>{{ error }}</p>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="input-group">
+        <i class="fas fa-user-circle"></i>
+        {{ form.username }}
+        {{ form.username.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-id-card"></i>
+        {{ form.full_name }}
+        {{ form.full_name.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-phone-alt"></i>
+        {{ form.phone }}
+        {{ form.phone.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-envelope"></i>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        {{ form.password1 }}
+        {{ form.password1.errors }}
+      </div>
+
+      <div class="input-group">
+        <i class="fas fa-lock"></i>
+        {{ form.password2 }}
+        {{ form.password2.errors }}
+      </div>
+
+      <button type="submit" class="btn-gold">
+        <i class="fas fa-user-plus"></i> Зарегистрироваться
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Уже есть аккаунт? <a href="{% url 'login' %}">Войдите</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

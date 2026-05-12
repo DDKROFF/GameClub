@@ -6,7 +6,7 @@ from .models import Hall, Device, Computer, Console
 
 class HallListView(ListView):
     model = Hall
-    template_name = 'halls/hall_list.html'
+    template_name = 'devices/hall_list.html'
     context_object_name = 'halls'
     paginate_by = 10
     ordering = ['name']
@@ -21,14 +21,14 @@ class HallListView(ListView):
 
 class HallDetailView(DetailView):
     model = Hall
-    template_name = 'halls/hall_detail.html'
+    template_name = 'devices/hall_detail.html'
     context_object_name = 'hall'
 
 
 class HallCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Hall
     fields = ['name', 'description', 'max_capacity']
-    template_name = 'halls/hall_form.html'
+    template_name = 'devices/hall_form.html'
     success_url = reverse_lazy('hall_list')
     permission_required = 'halls.add_hall'
 
@@ -36,14 +36,14 @@ class HallCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 class HallUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Hall
     fields = ['name', 'description', 'max_capacity']
-    template_name = 'halls/hall_form.html'
+    template_name = 'devices/hall_form.html'
     success_url = reverse_lazy('hall_list')
     permission_required = 'halls.change_hall'
 
 
 class HallDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Hall
-    template_name = 'halls/hall_confirm_delete.html'
+    template_name = 'devices/hall_confirm_delete.html'
     success_url = reverse_lazy('hall_list')
     permission_required = 'halls.delete_hall'
 
@@ -119,7 +119,7 @@ class ConsoleDetailView(DetailView):
     context_object_name = 'console'
 
 class ClubMapView(TemplateView):
-    template_name = 'hallsMap.html'
+    template_name = 'devices/hallsMap.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
