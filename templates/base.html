@@ -1,14 +1,31 @@
-<!doctype html>
-<html lang="en">
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{% block title %}{% endblock %}
+    </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
 </head>
 <body>
-<header></header>
+<header class="header">
+    <div class="favicon">
+        <div class="logo"><span>G</span>Five • CLUB</div>
+    </div>
+
+    <div class="navbar">
+        <div class="nav-list">
+            <a href="{% url 'main:home' %}" class="tab-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="#" class="tab-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="{% url 'main:hallMap' %}" class="tab-link"><i class="fas fa-gamepad"></i> Карта клуба</a>
+            <a href="#" class="tab-link"><i class="fas fa-address-card"></i> Контакты</a>
+            <a href="#" class="tab-link"><i class="fas fa-trophy"></i> Киберспорт</a>
+            <a href="#" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
+        </div>
+    </div>
+</header>
 <main>
     {% block content %}
 
@@ -64,6 +81,6 @@
             </div>
         </div>
     </div>
-    {#    </footer>
+</footer>
 </body>
 </html>

@@ -9,7 +9,7 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('applications')
+            return redirect('signin')
     else:
         form = RegisterForm()
 
@@ -17,22 +17,15 @@ def register_view(request):
 
 
 def login_view(request):
-
-    if request.user.is_authenticated:
-        return redirect('applications')
-
     if request.method == 'POST':
-        form = MultiFieldLoginForm(request, data=request.POST)
+        form = MultiFieldLoginForm(data=request.POST)
         if form.is_valid():
             identity = form.cleaned_data.get('identity')
             password = form.cleaned_data.get('password')
             user = authenticate(request, identity=identity, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('applications')
-            else:
-                form.add_error(None, 'Неверный идентификатор или пароль.')
+                return redirect('home')
     else:
-        form = MultiFieldLoginForm(request)
-
+        form = MultiFieldLoginForm()
     return render(request, 'glob/login.html', {'form': form})

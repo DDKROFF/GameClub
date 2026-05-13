@@ -23,7 +23,7 @@ body {
 }
 
 /* ========== ШАПКА ========== */
-.navbar-full {
+.header {
     width: 100%;
     background: rgba(12, 15, 18, 0.85);
     backdrop-filter: blur(8px);
@@ -32,7 +32,7 @@ body {
     z-index: 3;
 }
 
-.navbar {
+.favicon {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -58,7 +58,7 @@ body {
 }
 
 /* ========== ЯЗЫЧОК ========== */
-.tabs-wrapper {
+.navbar {
     background: transparent;
     width: 100%;
     display: flex;
@@ -67,7 +67,7 @@ body {
     z-index: 2;
 }
 
-.single-tab {
+.nav-list {
     background: rgba(26, 29, 33, 0.85);
     backdrop-filter: blur(4px);
     border-radius: 0 0 18px 18px;

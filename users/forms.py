@@ -48,11 +48,11 @@ class RegisterForm(UserCreationForm):
             user.save()
         return user
 
-
+'''
 class MultiFieldLoginForm(forms.Form):
     identity = forms.CharField(
         label='Телефон, email или логин',
-        max_length=255,
+        max_length=150,
         widget=forms.TextInput(attrs={
             'placeholder': 'Телефон, email или логин',
             'autofocus': True,
@@ -67,19 +67,23 @@ class MultiFieldLoginForm(forms.Form):
     def clean_identity(self):
         return self.cleaned_data.get('identity', '').strip()
 '''
+from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+
 class MultiFieldLoginForm(AuthenticationForm):
-    username = None
+    username = forms.CharField()
     identity = forms.CharField(
-        label='Телефон, email или логин',
-        max_length=150,
-        widget=forms.TextInput(attrs={'placeholder': 'Телефон, email или логин', 'autofocus': True})
+        label="Email, телефон или логин",
+        widget=forms.TextInput(attrs={
+            'placeholder': 'Email, телефон или логин',
+            'autofocus': True,
+            'class': 'form-control'
+        })
     )
     password = forms.CharField(
-        label='Пароль',
-        strip=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Пароль'})
+        label="Пароль",
+        widget=forms.PasswordInput(attrs={
+            'placeholder': 'Пароль',
+            'class': 'form-control'
+        })
     )
-
-    def clean_identity(self):
-        return self.cleaned_data.get('identity', '').strip()
-'''

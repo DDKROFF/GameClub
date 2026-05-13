@@ -46,10 +46,10 @@
 }
 
 .hero-text .gold-accent {
-    background: var(--gradient-gold);
+    background: #d73d04;
     -webkit-background-clip: text;
     background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-text-fill-color: #d73d04;
 }
 
 .hero-text p {
