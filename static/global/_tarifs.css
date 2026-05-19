@@ -1,0 +1,315 @@
+/* ========== ТАРИФЫ (уменьшенные, исходный дизайн) ========== */
+.tariff-section{
+    padding: 70px 0 60px;
+    background: rgba(10, 12, 14, 0.65);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(47, 53, 59, 0.5);
+}
+
+.tariff__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 40px;
+    justify-content: center;
+}
+
+.tariff__card {
+    position: relative;
+    width: 295px;
+    height: 478px;
+    border-radius: 53px;
+    transition: 0.3s ease;
+}
+
+.tariff__card:hover {
+    transform: scale(1.06);
+}
+
+/* Градиенты для каждой карточки */
+#card__one {
+    background: linear-gradient(30deg, #366EE7 0%, #36D1EC 23%, #92FF33 49%, #45FF7D 69%, #3700FF 100%);
+}
+#card__two {
+    background: linear-gradient(30deg, #366EE7 0%, #E336EC 23%, #C63CF4 41%, #FC45FF 67%, #3700FF 100%);
+}
+#card__three {
+    background: linear-gradient(40deg, #AF8C2A 0%, #5F3206 100%);
+}
+#card__four {
+    background: linear-gradient(35deg, #0051ff 0%, #1b007d 70%);
+}
+
+/* Смена градиента при наведении (псевдоэлемент) */
+#card__one::before,
+#card__two::before,
+#card__three::before,
+#card__four::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    opacity: 0;
+    transition: 1s;
+    z-index: 0;
+}
+
+#card__one::before {
+    background: linear-gradient(133deg, #366EE7 0%, #36D1EC 23%, #92FF33 49%, #45FF7D 69%, #3700FF 100%);
+}
+#card__two::before {
+    background: linear-gradient(133deg, #366EE7 0%, #E336EC 23%, #C63CF4 41%, #FC45FF 67%, #3700FF 100%);
+}
+#card__three::before {
+    background: linear-gradient(227deg, #AF8C2A 0%, #5F3206 100%);
+}
+#card__four::before {
+    background: linear-gradient(211deg, #0051ff 0%, #1b007d 70%);
+}
+
+#card__one:hover::before,
+#card__two:hover::before,
+#card__three:hover::before,
+#card__four:hover::before {
+    opacity: 1;
+}
+
+/* Фоновая подложка */
+.background__card {
+    top: 7px;
+    right: -7px;
+    position: relative;
+    background-color: #0A0F1B;
+    border-radius: 46px;
+    width: 281px;
+    height: 464px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.background__text {
+    bottom: 33px;
+    left: -3%;
+    position: relative;
+    font-weight: 700;
+    font-size: 45px;
+    color: rgba(114, 82, 255, 0.08);
+    line-height: 140%;
+    letter-spacing: 0.3em;
+    transform: rotate(330deg);
+    z-index: 2;
+    width: 600px;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* Контент тарифа (поверх подложки) */
+.tarrif__content {
+    display: flex;
+    position: relative;
+    left: 7px;
+    bottom: 460px;
+    max-width: 281px;
+    height: 464px;
+    flex-direction: column;
+    z-index: 3;
+}
+
+.tariff__title {
+    margin: 15px auto 0 19px;
+    font-weight: 700;
+    font-size: 35px;
+}
+
+.play__time {
+    margin-top: 44px;
+    text-align: center;
+    font-weight: 500;
+    font-size: 21px;
+}
+
+.play__hours {
+    text-align: center;
+    font-weight: 700;
+    font-size: 57px;
+}
+
+.tariff__subtitle {
+    max-width: 164px;
+    font-size: 17px;
+    margin: 44px auto 0 auto;
+    text-align: center;
+}
+
+.play__price {
+    margin: auto auto 27px 17px;
+    font-weight: 600;
+    font-size: 35px;
+}
+
+/* Обводка текста при наведении */
+#tarrif__text1:hover {
+    -webkit-text-stroke: 0.5px #61803C;
+}
+#tarrif__text2:hover {
+    -webkit-text-stroke: 0.5px #7B0082;
+}
+#tarrif__text3:hover {
+    -webkit-text-stroke: 0.5px #8E752E;
+}
+#tarrif__text4:hover {
+    -webkit-text-stroke: 0.5px #366EE7;
+}
+
+/* ========== Адаптивность ========== */
+@media (max-width: 1400px) {
+    .tariff__list {
+        gap: 30px;
+    }
+    .tariff__card {
+        width: 254px;
+        height: 412px;
+        border-radius: 46px;
+    }
+    .background__card {
+        top: 4px;
+        right: -4px;
+        border-radius: 40px;
+        width: 242px;
+        height: 400px;
+    }
+    .background__text {
+        bottom: 110px;
+        left: -24%;
+        font-size: 49px;
+        line-height: 120%;
+        letter-spacing: 0.25em;
+    }
+    .tarrif__content {
+        left: 4px;
+        bottom: 396px;
+        max-width: 242px;
+        height: 400px;
+    }
+    .tariff__title {
+        margin: 12px auto 0 23px;
+        font-weight: 600;
+        font-size: 27px;
+    }
+    .play__time {
+        margin-top: 22px;
+        font-size: 15px;
+    }
+    .play__hours {
+        font-size: 40px;
+    }
+    .tariff__subtitle {
+        max-width: 166px;
+        font-size: 12px;
+        margin: 44px auto 0 auto;
+    }
+    .play__price {
+        margin: auto auto 26px 18px;
+        font-size: 30px;
+    }
+}
+
+@media (max-width: 1024px) {
+    .tariff__list {
+        gap: 20px;
+    }
+    .tariff__card {
+        width: 215px;
+        height: 350px;
+        border-radius: 40px;
+    }
+    .background__card {
+        top: 4px;
+        right: -5px;
+        border-radius: 34px;
+        width: 205px;
+        height: 338px;
+    }
+    .tarrif__content {
+        left: 3px;
+        bottom: 334px;
+        max-width: 205px;
+        height: 338px;
+    }
+    .tariff__title {
+        margin: 12px auto 0 23px;
+        font-size: 23px;
+    }
+    .play__time {
+        margin-top: 24px;
+        font-size: 13px;
+    }
+    .play__hours {
+        font-size: 38px;
+    }
+    .tariff__subtitle {
+        max-width: 166px;
+        font-size: 11px;
+        margin: 44px auto 0 auto;
+    }
+    .play__price {
+        margin: auto auto 18px 12px;
+        font-size: 27px;
+    }
+}
+
+@media (max-width: 550px) {
+    .tariff__list {
+        gap: 20px;
+    }
+    .tariff__card {
+        width: 129px;
+        height: 210px;
+        border-radius: 23px;
+    }
+    .background__card {
+        top: 4px;
+        right: -4px;
+        border-radius: 19px;
+        width: 121px;
+        height: 202px;
+    }
+    .background__text {
+        bottom: 99px;
+        left: -46%;
+        font-size: 44px;
+        line-height: 114%;
+        letter-spacing: 0.1em;
+    }
+    .tarrif__content {
+        left: 3px;
+        bottom: 198px;
+        max-width: 122px;
+        height: 201px;
+    }
+    .tariff__title {
+        margin: 3px auto 0 11px;
+        font-size: 13px;
+    }
+    .play__time {
+        margin-top: 19px;
+        font-size: 8px;
+    }
+    .play__hours {
+        font-size: 25px;
+    }
+    .tariff__subtitle {
+        max-width: 75px;
+        font-size: 6px;
+        margin: 20px auto 0 auto;
+    }
+    .play__price {
+        margin: auto auto 6px 10px;
+        font-size: 15px;
+    }
+}

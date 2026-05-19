@@ -1,5 +1,7 @@
-@import "pages/index.css";
-@import "pages/hallsMap.css";
-@import "global/global.css";
-@import "global/structure.css";
-@import "global/auth&reg.css";
+@import "global/_reset.css";
+@import "pages/_index.css";
+@import "pages/_hallsMap.css";
+@import "global/_global.css";
+@import "global/_structure.css";
+@import "global/_auth&reg.css";
+@import "global/_tarifs.css";

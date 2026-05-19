@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Hall(models.Model):
-    """Модель Зала"""
     name = models.CharField(max_length=100, unique=True, verbose_name="Название зала")
     description = models.TextField(blank=True, null=True, verbose_name="Описание")
     max_capacity = models.PositiveIntegerField(
@@ -25,7 +24,6 @@ class Hall(models.Model):
 
 
 class Device(models.Model):
-    """Базовая модель Устройства"""
     class DeviceType(models.TextChoices):
         COMPUTER = 'computer', 'Компьютер'
         CONSOLE = 'console', 'Консоль'
@@ -36,7 +34,6 @@ class Device(models.Model):
         MAINTENANCE = 'maintenance', 'Обслуживание'
         RESERVED = 'reserved', 'Забронировано'
 
-    # Поля для позиционирования в зале (ряд и колонка)
     row = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ряд")
     column = models.PositiveIntegerField(null=True, blank=True, verbose_name="Колонка")
 
@@ -119,7 +116,6 @@ class Computer(models.Model):
 
 
 class Console(models.Model):
-    """Модель Консоли (расширение Device)"""
     class ConsoleType(models.TextChoices):
         PS5 = 'ps5', 'PlayStation 5'
         PS4 = 'ps4', 'PlayStation 4'

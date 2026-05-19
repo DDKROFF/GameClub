@@ -36,3 +36,6 @@ scrollbar-width: thin;
 scrollbar-color: var(--gold-dark) #0a0c0e;
 }
 
+html {
+    scroll-behavior: smooth;
+}

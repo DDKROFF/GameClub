@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     'devices',
     'main',
     'users',
+    'news',
+    'tarifs',
 ]
 
 MIDDLEWARE = [

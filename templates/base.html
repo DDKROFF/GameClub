@@ -18,11 +18,11 @@
     <div class="navbar">
         <div class="nav-list">
             <a href="{% url 'main:home' %}" class="tab-link"><i class="fas fa-home"></i> Главная</a>
-            <a href="#" class="tab-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="{% url 'main:home' %}#news" class="tab-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="{% url 'main:home' %}#tariffs" class="tab-link"><i class="fas fa-trophy"></i> Тарифы</a>
             <a href="{% url 'main:hallMap' %}" class="tab-link"><i class="fas fa-gamepad"></i> Карта клуба</a>
             <a href="#" class="tab-link"><i class="fas fa-address-card"></i> Контакты</a>
-            <a href="#" class="tab-link"><i class="fas fa-trophy"></i> Киберспорт</a>
-            <a href="#" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
+            <a href="{% url 'main:home' %}#contacts" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
         </div>
     </div>
 </header>

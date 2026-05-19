@@ -18,67 +18,101 @@
 
     <div class="divider-gray"></div>
 
-    <section class="news-section">
+    <section class="news-section" id="news">
         <div class="news-container">
             <h2 class="section-title">Актуальные события</h2>
             <div class="news-list">
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="news-badge"><i class="fas fa-bolt"></i> Горячее обновление</span>
-                        <span class="news-date"><i class="far fa-calendar-alt"></i> 28 марта 2025</span>
+                {% for news in news_list %}
+                    <div class="news-item" data-news-id="{{ news.id }}">
+                        <div class="news-header">
+                            {% for tag in news.tags.all %}
+                                <span class="news-badge"><i class="fas fa-{{ tag.slug|default:'tag' }}"></i> {{ tag.name }}</span>
+                            {% endfor %}
+                            <span class="news-date">
+                            <i class="far fa-calendar-alt"></i> {{ news.publication_date|date:"d E Y" }}
+                        </span>
+                        </div>
+                        <h3 class="news-title">{{ news.title }}</h3>
+                        <div class="news-excerpt">{{ news.excerpt }}</div>
+                        <div class="news-meta-row">
+                        <span class="views-count">
+                            <i class="far fa-eye"></i> <span>{{ news.stats.views|default:0 }}</span> просмотров
+                        </span>
+                            <span class="like-btn" data-action="like" style="cursor:pointer;">
+                            <i class="far fa-thumbs-up"></i> <span class="likes-count">{{ news.stats.likes|default:0 }}</span>
+                        </span>
+                            <span class="dislike-btn" data-action="dislike" style="cursor:pointer;">
+                            <i class="far fa-thumbs-down"></i> <span class="dislikes-count">{{ news.stats.dislikes|default:0 }}</span>
+                        </span>
+                        </div>
                     </div>
-                    <h3 class="news-title">Открытие PREMIUM-зала: RTX 5090 и новейшие мониторы 480 Гц</h3>
-                    <div class="news-excerpt">
-                        Эксклюзивная зона с 20 киберспортивными местами. Мониторы ASUS ROG Swift, процессоры Intel Core Ultra 9, периферия Razer. Первые 3 дня — скидка 30%.
-                    </div>
-                    <div class="news-meta-row">
-                        <span><i class="far fa-eye"></i> 1.2k просмотров</span>
-                        <span><i class="fas fa-comment"></i> 45 отзывов</span>
-                    </div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="news-badge"><i class="fas fa-trophy"></i> Турнир</span>
-                        <span class="news-date"><i class="far fa-clock"></i> 5 апреля, 18:00</span>
-                    </div>
-                    <h3 class="news-title">GFive Dota 2 Cup: призовой фонд 150 000₽</h3>
-                    <div class="news-excerpt">
-                        Командный турнир 5х5. Регистрация до 3 апреля. Финал в главном зале — прямая трансляция.
-                    </div>
-                    <div class="news-meta-row">
-                        <span><i class="fas fa-users"></i> 32 команды</span>
-                        <span><i class="fas fa-gift"></i> Призы от партнеров</span>
-                    </div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="news-badge"><i class="fas fa-moon"></i> Ночной движ</span>
-                        <span class="news-date"><i class="far fa-calendar-alt"></i> Каждые выходные</span>
-                    </div>
-                    <h3 class="news-title">Ночной марафон: безлимит до утра за 599₽ + энергетик</h3>
-                    <div class="news-excerpt">
-                        С 00:00 до 09:00 безлимитный доступ, анти-сон зона, снеки. Приведи друга — час бесплатно.
-                    </div>
-                    <div class="news-meta-row">
-                        <span><i class="fas fa-tag"></i> Акция до конца апреля</span>
-                        <span><i class="fas fa-headset"></i> VIP-зона</span>
-                    </div>
-                </div>
-                <div class="news-item">
-                    <div class="news-header">
-                        <span class="news-badge"><i class="fas fa-code-branch"></i> Киберспорт</span>
-                        <span class="news-date"><i class="far fa-calendar-alt"></i> 12 апреля</span>
-                    </div>
-                    <h3 class="news-title">Открытый турнир по Valorant: мастер-класс от Team Empire</h3>
-                    <div class="news-excerpt">
-                        Встреча с профессионалами, разбор тактик, розыгрыш мерча. Вход свободный.
-                    </div>
-                    <div class="news-meta-row">
-                        <span><i class="fas fa-map-marker-alt"></i> Главная арена</span>
-                        <span><i class="fas fa-ticket-alt"></i> Регистрация на ресепшн</span>
-                    </div>
-                </div>
+                {% empty %}
+                    <p style="color:white; text-align:center;">Новостей пока нет.</p>
+                {% endfor %}
             </div>
+        </div>
+    </section>
+
+    <div class="divider-gray"></div>
+
+    <section class="tariff-section" id="tariffs">
+
+        <div class="tariffs indent">
+            <h2 class="section-title" id="tariffs">Наши тарифы</h2>
+            <ul class="tariff__list">
+                <li class="tariff__card" id="card__one">
+                    <div class="background__card">
+                        <p class="background__text">Ho
+                            Half-hourHo Half-hour Half-hourHo Half-hourHo Half-hourHoHalf-hour</p>
+                    </div>
+                    <div class="tarrif__content" id="tarrif__text1">
+                        <p class="tariff__title">Тариф: Thirty</p>
+                        <p class="play__time">Игровое время</p>
+                        <P class="play__hours">30 Мин</P>
+                        <p class="tariff__subtitle">Для того чтобы доиграть катку</p>
+                        <p class="play__price">Цена: 30руб</p>
+                    </div>
+                </li>
+                <li class="tariff__card" id="card__two">
+                    <div class="background__card">
+                        <p class="background__text">Ho
+                            Hour Hour H rrrur Hour H our Hour Hour Hour Hou Hour Hour Hour</p>
+                    </div>
+                    <div class="tarrif__content" id="tarrif__text2">
+                        <p class="tariff__title">Тариф: Hour</p>
+                        <p class="play__time">Игровое время</p>
+                        <P class="play__hours">1 час</P>
+                        <p class="tariff__subtitle">Популярный тариф для того чтобы немного поиграть</p>
+                        <p class="play__price">Цена: 60руб</p>
+                    </div>
+                </li>
+                <li class="tariff__card" id="card__three">
+                    <div class="background__card">
+                        <p class="background__text">
+                            Day DayDay DayDay Day Day DayDay Day Day DayDay Da Day Dayy ay DayDay Da Day Day</p>
+                    </div>
+                    <div class="tarrif__content" id="tarrif__text3">
+                        <p class="tariff__title">Тариф: Day</p>
+                        <p class="play__time">Игровое время</p>
+                        <P class="play__hours">8 часов</P>
+                        <p class="tariff__subtitle">Играйте днем или вечером в свое удовольствие</p>
+                        <p class="play__price">Цена: 380руб</p>
+                    </div>
+                </li>
+                <li class="tariff__card" id="card__four">
+                    <div class="background__card">
+                        <p class="background__text">Night Night Night NightNight Night Night Night Night Night Night
+                            Night Nigh</p>
+                    </div>
+                    <div class="tarrif__content" id="tarrif__text4">
+                        <p class="tariff__title">Тариф: Night</p>
+                        <p class="play__time">Игровое время</p>
+                        <P class="play__hours">8 часов</P>
+                        <p class="tariff__subtitle">Играйте всю ночь от 22:00 до 6:00</p>
+                        <p class="play__price">Цена: 320руб</p>
+                    </div>
+                </li>
+            </ul>
         </div>
     </section>
 
@@ -96,6 +130,7 @@
 
     <div class="divider-gray"></div>
     <script src="{% static 'js/index.js' %}"></script>
+    <script src="{% static 'js/stat.js' %}"></script>
 {% endblock %}
 
 </body>
