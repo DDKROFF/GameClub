@@ -1,0 +1,529 @@
+100 x 100 800
+
+
+
+
+
+        /* КОНТЕЙНЕР СЕТКИ — строго 800px ширина, gap 16px */
+        .dashboard-grid {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(2px);
+            border-radius: 32px;
+            padding: 20px 0 20px 0;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+        }
+
+        /* Грид: 7 колонок по 100px, gap 16px, центрируем по горизонтали */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(7, 100px);
+            gap: 16px;
+            justify-content: center;    /* выравнивание внутри .dashboard-grid (оставшиеся 4px равномерно по бокам) */
+            margin: 0 auto;
+        }
+
+        /* Карточка элемента — ровно 100x100px */
+        .grid-item {
+            width: 100px;
+            height: 100px;
+            background-color: #2c3e66;
+            border-radius: 20px;
+            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255,255,255,0.3);
+            transition: all 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            /* плавное изменение цвета фона и тени */
+            transition: background-color 0.25s ease, transform 0.15s ease, box-shadow 0.2s;
+        }
+
+        /* эффект при наведении (интерактив) */
+        .grid-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Контейнер иконки: фикс размер 50x40 */
+        .icon-box {
+            width: 50px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        /* Текст под иконкой */
+        .pc-label {
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(2px);
+            padding: 3px 8px;
+            border-radius: 40px;
+            color: white;
+            letter-spacing: 0.3px;
+            font-family: 'JetBrains Mono', monospace, 'Courier New';
+            box-shadow: inset 0 0 2px rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.2);
+            transition: background 0.2s;
+        }
+
+        /* Панель управления для демонстрации работы с БД (имитация получения данных) */
+        .demo-panel {
+            margin-top: 32px;
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: #1e2a3e;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #0f4c5f;
+            border-bottom: 2px solid #6ab0c6;
+        }
+
+        .btn-primary:hover {
+            background: #1b6b85;
+            transform: scale(0.98);
+        }
+
+        .btn-warning {
+            background: #b4652d;
+            border-bottom: 2px solid #ffb347;
+        }
+
+        .btn-warning:hover {
+            background: #d47a3b;
+        }
+
+        .badge-info {
+            background: #00000066;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.7rem;
+            font-weight: normal;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 11px;
+            color: #2c3e66;
+            font-weight: 500;
+            opacity: 0.8;
+        }
+
+        /* адаптив для очень узких экранов — скролл, но сетка сохранит размеры */
+        @media (max-width: 860px) {
+            body {
+                padding: 16px;
+            }
+            .dashboard-grid {
+                overflow-x: auto;
+            }
+            .grid-container {
+                justify-content: flex-start;
+                padding-left: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-grid">
+    <!-- сама сетка 14 элементов (2 ряда по 7) -->
+    <div class="grid-container" id="dynamicGrid"></div>
+
+    <!-- панель имитации получения данных с БД (через JS / AJAX / fetch) -->
+    <div class="demo-panel">
+        <button class="btn btn-primary" id="refreshDataBtn">
+            <i class="fas fa-database"></i> Загрузить данные из БД (имитация)
+        </button>
+        <button class="btn btn-warning" id="randomizeLocalBtn">
+            <i class="fas fa-chart-line"></i> Случайный апдейт (тест цвета + иконки)
+        </button>
+    </div>
+    <footer>
+        <span>⚡ Каждый элемент: иконка 50x40 | текст "PC - {число}" | цвет / иконка динамически</span>
+    </footer>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. КОНФИГУРАЦИЯ
+    // Всего элементов: 14 (2 ряда по 7)
+    const TOTAL_ITEMS = 14;
+
+    // Доступные иконки (FontAwesome классы) — для динамической замены
+    // все иконки имеют одинаковый размер 50x40 через стиль .icon-box (font-size:32px)
+    const ICON_SET = [
+        "fas fa-desktop",          // ПК
+        "fas fa-server",           // Сервер
+        "fas fa-laptop",           // Ноутбук
+        "fas fa-microchip",        // Чип
+        "fas fa-database",         // База данных
+        "fas fa-cloud",            // Облако
+        "fas fa-network-wired",    // Сеть
+        "fas fa-hdd",              // Жесткий диск
+        "fas fa-memory",           // Память
+        "fas fa-plug",             // Питание
+        "fas fa-wifi",             // Wi-Fi
+        "fas fa-print",            // Принтер
+        "fas fa-tv",               // Монитор
+        "fas fa-cogs"              // Шестерёнки
+    ];
+
+    // Цветовые схемы в зависимости от "состояния" (например приходят с БД)
+    // Будем менять background-color элемента в зависимости от статуса / значения
+    // В реальном Django данные с БД могут передавать status: "success", "warning", "critical", "info", "neutral"
+    // Создаём маппинг статус -> цвет фона (также можно привязать к числам)
+    const STATUS_COLOR_MAP = {
+        "optimal": "#2c7a47",      // тёмно-зелёный
+        "good": "#2a7f6e",         // бирюзовый
+        "warning": "#e9a23b",      // оранжевый
+        "critical": "#c13b3b",     // красный
+        "info": "#3f6b9e",         // синий
+        "idle": "#5a5f73",         // серо-синий
+        "maintenance": "#9b59b6",  // фиолетовый
+        "low": "#e67e22"           // тыквенный
+    };
+
+    // Для демонстрации гибкости: массив возможных статусов
+    const STATUS_KEYS = Object.keys(STATUS_COLOR_MAP);
+
+    // Структура данных, которую мы получаем с "бэкенда" (Django через JSON)
+    // Каждый элемент имеет: pcNumber (число), status (строка), iconKey (индекс или название иконки)
+    // Для простоты будем хранить объекты в массиве itemsData
+    let itemsData = [];
+
+    // ссылка на DOM-контейнер
+    const gridContainer = document.getElementById('dynamicGrid');
+
+    // --------------------------------------------------------------
+    // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ГЕНЕРАЦИИ СЛУЧАЙНЫХ ДАННЫХ (имитация БД)
+    function getRandomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // получить случайную иконку (класс FA)
+    function getRandomIconClass() {
+        return ICON_SET[Math.floor(Math.random() * ICON_SET.length)];
+    }
+
+    // получить случайный статус (для цвета)
+    function getRandomStatus() {
+        return STATUS_KEYS[Math.floor(Math.random() * STATUS_KEYS.length)];
+    }
+
+    // Генерируем стартовый массив данных для 14 элементов
+    function generateInitialData() {
+        const data = [];
+        for (let i = 0; i < TOTAL_ITEMS; i++) {
+            // число PC от 1 до 99, чтобы красиво влезало (можно 1-999 но дизайн позволяет)
+            const pcNum = getRandomInt(1, 99);
+            const status = getRandomStatus();
+            const iconClass = getRandomIconClass();
+            data.push({
+                id: i,
+                pcNumber: pcNum,
+                status: status,
+                iconClass: iconClass
+            });
+        }
+        return data;
+    }
+
+    // Получить цвет фона по статусу (берётся из STATUS_COLOR_MAP, если нет — fallback)
+    function getColorByStatus(status) {
+        return STATUS_COLOR_MAP[status] || "#3a5e7c";
+    }
+
+    // --------------------------------------------------------------
+    // 3. ОСНОВНАЯ ФУНКЦИЯ ОТРИСОВКИ СЕТКИ (рендер)
+    // Рендерит все 14 элементов на основе актуальных itemsData.
+    // При этом автоматически обновляется: цвет фона, иконка, текст "PC - {число}"
+    function renderGrid() {
+        if (!gridContainer) return;
+        // очищаем контейнер, но можно и обновлять существующие элементы (пересоздадим для чистоты)
+        gridContainer.innerHTML = '';
+
+        for (let i = 0; i < TOTAL_ITEMS; i++) {
+            const item = itemsData[i];
+            if (!item) continue;
+
+            // Создаём карточку элемента
+            const card = document.createElement('div');
+            card.className = 'grid-item';
+            // привязываем data-id для возможных обновлений/кликов
+            card.setAttribute('data-index', i);
+            // устанавливаем цвет фона в зависимости от статуса
+            const bgColor = getColorByStatus(item.status);
+            card.style.backgroundColor = bgColor;
+
+            // Блок иконки (размер 50x40 фикс)
+            const iconDiv = document.createElement('div');
+            iconDiv.className = 'icon-box';
+            // Создаём i элемент для FontAwesome
+            const iconElem = document.createElement('i');
+            // установка классов иконки (например "fas fa-desktop")
+            iconElem.className = item.iconClass;
+            // стилизуем, чтобы иконка была по центру и размер подходил под 50x40
+            iconElem.style.fontSize = '32px';
+            iconElem.style.width = '100%';
+            iconElem.style.height = '100%';
+            iconElem.style.display = 'flex';
+            iconElem.style.alignItems = 'center';
+            iconElem.style.justifyContent = 'center';
+            iconDiv.appendChild(iconElem);
+
+            // Текст: PC - {число}
+            const textSpan = document.createElement('span');
+            textSpan.className = 'pc-label';
+            textSpan.textContent = `PC - ${item.pcNumber}`;
+
+            // Добавляем в карточку
+            card.appendChild(iconDiv);
+            card.appendChild(textSpan);
+
+            // Опционально: клик по карточке может выводить в консоль текущие данные (для отладки)
+            card.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log(`[Элемент ${i}] Данные: PC=${item.pcNumber}, статус=${item.status}, иконка=${item.iconClass}`);
+                // В реальном приложении здесь можно открыть модалку или отправить запрос
+            });
+
+            gridContainer.appendChild(card);
+        }
+    }
+
+    // --------------------------------------------------------------
+    // 4. ОБНОВЛЕНИЕ ДАННЫХ ИЗ "БАЗЫ ДАННЫХ" (симуляция запроса к Django)
+    // Функция имитирует получение JSON с сервера. В реальном проекте тут fetch('/api/data') и затем обновление itemsData
+    function fetchDataFromDatabase() {
+        // Имитация асинхронного запроса: получаем свежие данные (случайные, но можно и кастомные)
+        // В реальном проекте замените на fetch или XMLHttpRequest, обработайте ответ от Django view
+        return new Promise((resolve) => {
+            // Эмулируем задержку сети 300мс для реалистичности
+            setTimeout(() => {
+                const newData = [];
+                for (let i = 0; i < TOTAL_ITEMS; i++) {
+                    // Генерируем данные так, будто пришли из Django ORM
+                    const pcNum = getRandomInt(1, 120);        // числа от 1 до 120
+                    // Добавляем логику: иногда число может быть большим, но на дизайн не влияет
+                    let status = getRandomStatus();
+                    // можно привязать статус к диапазону числа для демонстрации бизнес-логики
+                    // (например если число > 90 -> critical, если < 30 -> warning и т.д.)
+                    // Это показывает, как смена данных БД влияет на цвет и иконку
+                    if (pcNum > 85) status = "critical";
+                    else if (pcNum > 65) status = "warning";
+                    else if (pcNum < 20) status = "maintenance";
+                    else if (pcNum > 45 && pcNum < 60) status = "optimal";
+
+                    // иконку можно менять по какому-то правилу (например, в зависимости от четности числа)
+                    let iconClass;
+                    if (pcNum % 3 === 0) iconClass = "fas fa-server";
+                    else if (pcNum % 5 === 0) iconClass = "fas fa-cloud";
+                    else if (pcNum % 7 === 0) iconClass = "fas fa-microchip";
+                    else iconClass = ICON_SET[pcNum % ICON_SET.length];
+
+                    newData.push({
+                        id: i,
+                        pcNumber: pcNum,
+                        status: status,
+                        iconClass: iconClass
+                    });
+                }
+                resolve(newData);
+            }, 280);
+        });
+    }
+
+    // Обновить глобальный массив и перерендерить (с анимацией эффекта)
+    async function updateWithDatabaseData() {
+        // Можно добавить эффект загрузки
+        showLoaderState(true);
+        try {
+            const freshData = await fetchDataFromDatabase();
+            itemsData = freshData.slice(); // заменяем данные
+            renderGrid();
+            // небольшая анимация: проставим временный эффект
+            animateGridFlash();
+        } catch (err) {
+            console.error("Ошибка при загрузке данных из БД", err);
+        } finally {
+            showLoaderState(false);
+        }
+    }
+
+    // Эффект вспышки при обновлении (визуальная обратная связь)
+    function animateGridFlash() {
+        if (!gridContainer) return;
+        gridContainer.style.transition = "opacity 0.1s";
+        gridContainer.style.opacity = "0.7";
+        setTimeout(() => {
+            gridContainer.style.opacity = "1";
+            setTimeout(() => {
+                gridContainer.style.transition = "";
+            }, 150);
+        }, 80);
+    }
+
+    function showLoaderState(loading) {
+        const btns = document.querySelectorAll('.btn');
+        if (loading) {
+            btns.forEach(btn => btn.style.opacity = '0.6');
+            // можно добавить курсор ожидания
+            document.body.style.cursor = 'wait';
+        } else {
+            btns.forEach(btn => btn.style.opacity = '1');
+            document.body.style.cursor = 'default';
+        }
+    }
+
+    // Функция для полного обновления рандомными данными (без запроса к БД) — тест смены цвета, иконки и текста
+    function randomizeLocalData() {
+        for (let i = 0; i < TOTAL_ITEMS; i++) {
+            const newPcNum = getRandomInt(1, 99);
+            let newStatus = getRandomStatus();
+            // небольшая логика для демонстрации зависимости цвета от числа
+            if (newPcNum > 80) newStatus = "critical";
+            else if (newPcNum > 60) newStatus = "warning";
+            else if (newPcNum < 15) newStatus = "maintenance";
+
+            const newIcon = getRandomIconClass();
+            itemsData[i] = {
+                ...itemsData[i],
+                pcNumber: newPcNum,
+                status: newStatus,
+                iconClass: newIcon
+            };
+        }
+        renderGrid();
+        animateGridFlash();
+    }
+
+    // --------------------------------------------------------------
+    // 5. НАСТРОЙКА ИНТЕРАКТИВНОГО ИЗМЕНЕНИЯ ЦВЕТА / ИКОНКИ / ТЕКСТА через ПОЛЬЗОВАТЕЛЬСКИЙ СЦЕНАРИЙ
+    // Дополнительная функция: прямая эмуляция получения данных из БД для каждого элемента в отдельности
+    // (показывает гибкость: можно менять иконки и цвета по websocket или AJAX)
+    // Это просто чтобы показать, что любой элемент может менять свои параметры точечно.
+    function updateSingleItem(index, newPcNumber, newStatus, newIconClass) {
+        if (index >= 0 && index < itemsData.length) {
+            itemsData[index] = {
+                ...itemsData[index],
+                pcNumber: newPcNumber,
+                status: newStatus,
+                iconClass: newIconClass
+            };
+            // перерендер всей сетки (оптимизировано для демонстрации)
+            renderGrid();
+        }
+    }
+
+    // функция для тестирования точечного изменения через консоль (полезно разработчику)
+    window.demoUpdateSingle = updateSingleItem;
+
+    // --------------------------------------------------------------
+    // 6. ДОПОЛНИТЕЛЬНО: ДЕМОНСТРАЦИЯ РАБОТЫ С "ЗАМЕНОЙ ИКОНКИ И ЦВЕТА" при входных данных
+    // Так как в задании явно сказано "смена цвета в зависимости от входящих данных с бд. замена иконке в элементе"
+    // — функция fetchDataFromDatabase уже демонстрирует замену цвета и иконки на основе данных.
+    // Помимо этого, создадим обработчик, который вручную меняет цвет всех элементов
+    // в зависимости от нового "фильтра" / "категории". Это показывает гибкость.
+
+    // Пример обработчика "Применить настройки для всех элементов на основе среднего значения"
+    // необязательно, но расширяет понимание
+    function applyColorByNumberThreshold() {
+        // Меняем цвет в зависимости от того, больше ли число PC чем 50
+        for (let i = 0; i < TOTAL_ITEMS; i++) {
+            const num = itemsData[i].pcNumber;
+            let newStatus = itemsData[i].status;
+            if (num > 70) newStatus = "critical";
+            else if (num > 45) newStatus = "warning";
+            else if (num < 20) newStatus = "maintenance";
+            else newStatus = "optimal";
+            itemsData[i].status = newStatus;
+            // Также меняем иконку, привязывая к десяткам числа (демонстрация динамики)
+            const lastDigit = num % ICON_SET.length;
+            itemsData[i].iconClass = ICON_SET[lastDigit];
+        }
+        renderGrid();
+        animateGridFlash();
+    }
+
+    // выставим глобально для экспериментов
+    window.applyThresholdRule = applyColorByNumberThreshold;
+
+    // --------------------------------------------------------------
+    // 7. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+    function init() {
+        // 1) Генерируем начальные данные (имитация первого ответа от БД)
+        itemsData = generateInitialData();
+        // 2) Отрисовываем сетку
+        renderGrid();
+
+        // 3) Привязываем кнопки
+        const refreshBtn = document.getElementById('refreshDataBtn');
+        const randomBtn = document.getElementById('randomizeLocalBtn');
+
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                // Кнопка "Загрузить данные из БД" — имитация полноценного AJAX-запроса к Django view
+                await updateWithDatabaseData();
+            });
+        }
+
+        if (randomBtn) {
+            randomBtn.addEventListener('click', () => {
+                // Случайное обновление без "сервера", но с полной сменой цвета, иконки и текста
+                randomizeLocalData();
+            });
+        }
+
+        // Дополнительный пример автоматического обновления раз в 30 секунд (имитация пула данных)
+        // Раскомментировать если нужно, чтобы показывать постоянную смену данных с "бд"
+        // setInterval(() => {
+        //     updateWithDatabaseData();
+        // }, 30000);
+
+        console.log("Сетка готова. Элементов: 14. Размеры 100x100, gap 16px, иконка 50x40, текст PC - {число}");
+        console.log("Цвет и иконка меняются через кнопки, имитируя данные из БД.");
+    }
+
+    // старт после полной загрузки DOM
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
+
+:root {
+    --gold: #F4C542;
+    --available: #00ffaa;
+    --reserved: #3a86ff;
+    --maintenance: #ffcc00;
+    --in_use: #ff3a3a;
+}

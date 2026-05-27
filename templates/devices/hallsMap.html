@@ -1,23 +1,47 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}GFive | Карта залов{% endblock %}
+
 {% block content %}
-    {% load static %}
+<!-- Передаём пути к иконкам в JS -->
+<script>
+    const STATIC_IMAGES = {
+        pc: "{% static 'images/icons/PC.svg' %}",
+        console: "{% static 'images/icons/PS.svg' %}"
+    };
+</script>
 
-
-    <body>
-    <section class="container" style="padding-top: 70px">
+<section class="map-page">
+    <div class="container">
         <div class="club-header">
-            <h1 class="club-title"><i class="fas fa-map-marked-alt" style="color: var(--gold); margin-right: 12px;"></i> План залов</h1>
+            <h1 class="club-title">
+                <i class="fas fa-map-marked-alt"></i>
+                План залов
+            </h1>
             <div class="controls">
                 <span class="last-updated">Обновлено: <span id="lastUpdatedTime">—</span></span>
-                <button class="hmbtn" id="refreshBtn"><i class="fas fa-sync-alt"></i> Обновить</button>
-                <button class="hmbtn hmbtn--primary" id="autoRefreshToggle">Автообновление: ВКЛ</button>
+                <button class="hmbtn" id="refreshBtn">
+                    <i class="fas fa-sync-alt"></i> Обновить
+                </button>
+                <button class="hmbtn hmbtn--primary" id="autoRefreshToggle">
+                    Автообновление: ВКЛ
+                </button>
             </div>
         </div>
 
         <div id="hallsContainer"></div>
-    </section>
-    <script src="{% static 'js/hallsMap.js' %}"></script>
+
+        <div class="legend">
+            <div class="legend-item"><div class="legend-color available"></div> Свободно</div>
+            <div class="legend-item"><div class="legend-color reserved"></div> Забронировано</div>
+            <div class="legend-item"><div class="legend-color maintenance"></div> Обслуживание</div>
+            <div class="legend-item"><div class="legend-color in_use"></div> Используется</div>
+            <div class="legend-item"><div class="legend-color computer"></div> Компьютер</div>
+            <div class="legend-item"><div class="legend-color console"></div> Консоль</div>
+        </div>
+    </div>
+</section>
+
+<script src="{% static 'js/hallsMap.js' %}"></script>
 {% endblock %}
-</body>
-</html>
