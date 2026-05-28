@@ -1,24 +1,28 @@
-(function($) {
-    $(document).ready(function() {
-        function toggleFields() {
-            var type = $('#id_device_type').val();
+document.addEventListener('DOMContentLoaded', function () {
+    function updateSpotOptions(hallSelectId, spotSelectId) {
+        const hallSelect = document.querySelector(hallSelectId);
+        const spotSelect = document.querySelector(spotSelectId);
+        if (!hallSelect || !spotSelect) return;
 
-            // Сначала скрываем оба блока
-            $('.computer-fields').hide();
-            $('.console-fields').hide();
-
-            // Показываем нужный блок
-            if (type === 'computer') {
-                $('.computer-fields').show();
-            } else if (type === 'console') {
-                $('.console-fields').show();
+        hallSelect.addEventListener('change', function () {
+            const hallId = this.value;
+            if (!hallId) {
+                spotSelect.innerHTML = '<option value="">---------</option>';
+                return;
             }
-        }
+            // Запрашиваем свободные места для выбранного зала
+            fetch(`/js/spots/available/?hall_id=${hallId}`)
+                .then(response => response.json())
+                .then(data => {
+                    spotSelect.innerHTML = '<option value="">---------</option>';
+                    data.spots.forEach(function (spot) {
+                        const option = new Option(spot.label, spot.id);
+                        spotSelect.appendChild(option);
+                    });
+                });
+        });
+    }
 
-        // Вызываем функцию при загрузке
-        toggleFields();
-
-        // И при изменении типа
-        $('#id_device_type').change(toggleFields);
-    });
-})(django.jQuery);
+    // Применяем для компьютеров и консолей
+    updateSpotOptions('#id_hall', '#id_spot');
+});

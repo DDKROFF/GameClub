@@ -1,529 +1,485 @@
-100 x 100 800
+Админ панель>ввсти устройство в ситему> авто инвентарный номер, выбор зала(или склад),выбор места в зале(заготовленно 15макс), Выбор типа устройства(консоль или пк),Выписывание характеристик системы и перефир>Создание устройства. По умолчанию статус свободен
+Залы у них задача показать какие устройства на каком месте стоят. Есть 2 вида Залов (я создам их сам) Вип и стандарт. У залов есть пронумерованные места.
+При входе в устройства в админ панели показатели такие: Инвентарный номер ,тип устройства, место где находится(склад или используется), характеристики и перефирия.
+При в ходе в залы должна отображатся такая информация: место, тип устройства, Статус.
+А да и при создании устройства он так же содает устройство в таблице консоли или компьютеры в зависимости от выбора.
+
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
+
+
+class Hall(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="Название зала")
+    description = models.TextField(blank=True, null=True, verbose_name="Описание")
+    max_capacity = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name="Максимальная вместимость"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        db_table = 'halls'
+        verbose_name = "Зал"
+        verbose_name_plural = "Залы"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Device(models.Model):
+    class DeviceType(models.TextChoices):
+        COMPUTER = 'computer', 'Компьютер'
+        CONSOLE = 'console', 'Консоль'
+
+    class DeviceStatus(models.TextChoices):
+        AVAILABLE = 'available', 'Доступно'
+        IN_USE = 'in_use', 'Используется'
+        MAINTENANCE = 'maintenance', 'Обслуживание'
+        RESERVED = 'reserved', 'Забронировано'
+
+    row = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ряд")
+    column = models.PositiveIntegerField(null=True, blank=True, verbose_name="Колонка")
+
+    hall = models.ForeignKey(
+        Hall,
+        on_delete=models.PROTECT,
+        related_name='devices',
+        verbose_name="Зал"
+    )
+    device_type = models.CharField(
+        max_length=20,
+        choices=DeviceType.choices,
+        verbose_name="Тип устройства"
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=DeviceStatus.choices,
+        default=DeviceStatus.AVAILABLE,
+        verbose_name="Статус"
+    )
+    inventory_number = models.CharField(
+        max_length=50,
+        unique=True,
+        blank=True,
+        verbose_name="Инвентарный номер"
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.inventory_number:
+            last_device = Device.objects.order_by('id').last()
+            if last_device:
+                new_id = last_device.id + 1
+            else:
+                new_id = 1
+            self.inventory_number = f"DEV-{new_id:05d}"
+        super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'devices'
+        verbose_name = "Устройство"
+        verbose_name_plural = "Устройства"
+        ordering = ['hall', 'inventory_number']
+
+    def __str__(self):
+        return f"{self.get_device_type_display()} - {self.inventory_number}"
+
+
+class Computer(models.Model):
+    """Модель Компьютера (расширение Device)"""
+    device = models.OneToOneField(
+        Device,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name='computer_details',
+        verbose_name="Устройство"
+    )
+    cpu = models.CharField(max_length=100, verbose_name="Процессор")
+    gpu = models.CharField(max_length=100, verbose_name="Видеокарта")
+    ram_gb = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name="ОЗУ (ГБ)"
+    )
+    storage_gb = models.PositiveIntegerField(
+        validators=[MinValueValidator(1)],
+        verbose_name="Накопитель (ГБ)"
+    )
+    os = models.CharField(max_length=100, default="Windows 11", verbose_name="Операционная система")
+    has_webcam = models.BooleanField(default=False, verbose_name="Наличие веб-камеры")
+    has_microphone = models.BooleanField(default=False, verbose_name="Наличие микрофона")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        db_table = 'computers'
+        verbose_name = "Компьютер"
+        verbose_name_plural = "Компьютеры"
+
+    def __str__(self):
+        return f"Computer: {self.device.inventory_number} - {self.cpu}"
+
+
+class Console(models.Model):
+    class ConsoleType(models.TextChoices):
+        PS5 = 'ps5', 'PlayStation 5'
+        PS4 = 'ps4', 'PlayStation 4'
+        XBOX_SERIES_X = 'xbox_series_x', 'Xbox Series X'
+        XBOX_SERIES_S = 'xbox_series_s', 'Xbox Series S'
+        XBOX_ONE = 'xbox_one', 'Xbox One'
+        NINTENDO_SWITCH = 'nintendo_switch', 'Nintendo Switch'
+        NINTENDO_SWITCH_LITE = 'nintendo_switch_lite', 'Nintendo Switch Lite'
+
+    device = models.OneToOneField(
+        Device,
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name='console_details',
+        verbose_name="Устройство"
+    )
+    console_type = models.CharField(
+        max_length=30,
+        choices=ConsoleType.choices,
+        verbose_name="Тип консоли"
+    )
+    controller_count = models.PositiveIntegerField(
+        default=2,
+        validators=[MinValueValidator(1), MaxValueValidator(8)],
+        verbose_name="Количество контроллеров"
+    )
+    has_kinect = models.BooleanField(default=False, verbose_name="Наличие Kinect/камеры")
+    has_vr_support = models.BooleanField(default=False, verbose_name="Поддержка VR")
+    storage_gb = models.PositiveIntegerField(
+        default=500,
+        verbose_name="Объем накопителя (ГБ)"
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Дата обновления")
+
+    class Meta:
+        db_table = 'consoles'
+        verbose_name = "Консоль"
+        verbose_name_plural = "Консоли"
+
+    def __str__(self):
+        return f"{self.get_console_type_display()} - {self.device.inventory_number}"
 
 
 
 
+from django.contrib import admin
+from django import forms
+from django.utils.html import format_html
+from .models import Hall, Device, Computer, Console
 
-        /* КОНТЕЙНЕР СЕТКИ — строго 800px ширина, gap 16px */
-        .dashboard-grid {
-            max-width: 800px;
-            width: 100%;
-            background: rgba(255,255,255,0.3);
-            backdrop-filter: blur(2px);
-            border-radius: 32px;
-            padding: 20px 0 20px 0;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.2);
+class OperatingSystem:
+    CHOICES = [
+        ('windows_11', 'Windows 11'),
+        ('windows_10', 'Windows 10'),
+        ('macos_sonoma', 'macOS Sonoma'),
+        ('macos_ventura', 'macOS Ventura'),
+        ('other', 'Другая (указать вручную)'),
+    ]
+
+class ComputerCreationForm(forms.ModelForm):
+    hall = forms.ModelChoiceField(
+        queryset=Hall.objects.all(),
+        label="Зал",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    status = forms.ChoiceField(
+        choices=Device.DeviceStatus.choices,
+        label="Статус",
+        initial=Device.DeviceStatus.AVAILABLE,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    # Поле для выбора ОС из списка
+    os_choice = forms.ChoiceField(
+        choices=OperatingSystem.CHOICES,
+        label="Операционная система",
+        required=False,
+        initial='windows_11',
+        widget=forms.Select(attrs={'class': 'form-control os-select'})
+    )
+
+    # Поле для ручного ввода ОС (появляется при выборе "Другая")
+    os_custom = forms.CharField(
+        max_length=100,
+        label="Другая ОС",
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control os-custom',
+            'placeholder': 'Введите название ОС'
+        })
+    )
+
+    class Meta:
+        model = Computer
+        fields = ['cpu', 'gpu', 'ram_gb', 'storage_gb', 'has_webcam', 'has_microphone']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['ram_gb'].widget.attrs['min'] = 1
+        self.fields['storage_gb'].widget.attrs['min'] = 1
+
+        # Если редактируем существующий компьютер, определяем значение для os_choice
+        if self.instance and self.instance.pk and self.instance.os:
+            os_value = self.instance.os
+            # Проверяем, есть ли такое значение в предопределенных
+            found = False
+            for code, name in OperatingSystem.CHOICES:
+                if code == os_value or name == os_value:
+                    self.fields['os_choice'].initial = code
+                    found = True
+                    break
+
+            if not found:
+                # Если ОС нет в списке, выбираем "Другая" и заполняем custom поле
+                self.fields['os_choice'].initial = 'other'
+                self.fields['os_custom'].initial = os_value
+
+    def clean(self):
+        cleaned_data = super().clean()
+        os_choice = cleaned_data.get('os_choice')
+        os_custom = cleaned_data.get('os_custom')
+
+        # Определяем итоговое значение ОС
+        if os_choice == 'other':
+            if not os_custom:
+                self.add_error('os_custom', 'Укажите название операционной системы')
+            else:
+                # Используем значение из custom поля
+                cleaned_data['os'] = os_custom
+        else:
+            # Используем значение из списка (название, не код)
+            for code, name in OperatingSystem.CHOICES:
+                if code == os_choice:
+                    cleaned_data['os'] = name
+                    break
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        # Сначала создаем устройство
+        device = Device(
+            hall=self.cleaned_data['hall'],
+            device_type='computer',
+            status=self.cleaned_data['status'],
+        )
+
+        if commit:
+            device.save()
+
+            # Затем создаем компьютер, связанный с устройством
+            computer = super().save(commit=False)
+            computer.device = device
+            computer.os = self.cleaned_data['os']  # Устанавливаем итоговое значение ОС
+            computer.save()
+
+            return computer
+        else:
+            # Если commit=False, сохраняем для последующего сохранения
+            computer = super().save(commit=False)
+            computer.device = device
+            computer.os = self.cleaned_data['os']
+            return computer
+
+
+# Форма для создания консоли
+class ConsoleCreationForm(forms.ModelForm):
+    hall = forms.ModelChoiceField(
+        queryset=Hall.objects.all(),
+        label="Зал",
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    status = forms.ChoiceField(
+        choices=Device.DeviceStatus.choices,
+        label="Статус",
+        initial=Device.DeviceStatus.AVAILABLE,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = Console
+        fields = ['console_type', 'controller_count', 'has_kinect', 'has_vr_support', 'storage_gb']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['controller_count'].initial = 2
+        self.fields['storage_gb'].initial = 500
+        self.fields['console_type'].widget.attrs['class'] = 'form-control'
+        self.fields['controller_count'].widget.attrs['class'] = 'form-control'
+        self.fields['storage_gb'].widget.attrs['class'] = 'form-control'
+
+    def save(self, commit=True):
+        # Сначала создаем устройство
+        device = Device(
+            hall=self.cleaned_data['hall'],
+            device_type='console',
+            status=self.cleaned_data['status'],
+        )
+
+        if commit:
+            device.save()
+
+            # Затем создаем консоль, связанную с устройством
+            console = super().save(commit=False)
+            console.device = device
+            console.save()
+
+            return console
+        else:
+            # Если commit=False, сохраняем для последующего сохранения
+            console = super().save(commit=False)
+            console.device = device
+            return console
+
+
+@admin.register(Hall)
+class HallAdmin(admin.ModelAdmin):
+    list_display = ('name', 'max_capacity', 'created_at')
+    search_fields = ('name',)
+
+
+@admin.register(Device)
+class DeviceAdmin(admin.ModelAdmin):
+    list_display = ('inventory_number', 'device_type', 'status', 'hall', 'get_details_link')
+    list_filter = ('device_type', 'status', 'hall')
+    search_fields = ('inventory_number',)
+    readonly_fields = ('inventory_number', 'device_type')
+
+    def get_details_link(self, obj):
+        if obj.device_type == 'computer' and hasattr(obj, 'computer_details'):
+            url = f'/js/devices/computer/{obj.computer_details.pk}/change/'
+            return format_html('<a href="{}">Просмотр компьютера</a>', url)
+        elif obj.device_type == 'console' and hasattr(obj, 'console_details'):
+            url = f'/js/devices/console/{obj.console_details.pk}/change/'
+            return format_html('<a href="{}">Просмотр консоли</a>', url)
+        return '-'
+
+    get_details_link.short_description = 'Детали'
+
+
+@admin.register(Computer)
+class ComputerAdmin(admin.ModelAdmin):
+    form = ComputerCreationForm
+    list_display = ('device', 'cpu', 'ram_gb', 'storage_gb', 'get_os_display', 'get_inventory_number', 'get_hall',
+                    'get_status')
+    list_filter = ('device__hall', 'device__status', 'os')
+    search_fields = ('device__inventory_number', 'cpu', 'os')
+    raw_id_fields = ('device',)
+    readonly_fields = ('device',)
+
+    fieldsets = (
+        ('Общая информация', {
+            'fields': ('hall', 'status')
+        }),
+        ('Технические характеристики', {
+            'fields': ('cpu', 'gpu', 'ram_gb', 'storage_gb')
+        }),
+        ('Операционная система', {
+            'fields': ('os_choice', 'os_custom'),
+            'description': 'Выберите операционную систему из списка или укажите свою'
+        }),
+        ('Дополнительно', {
+            'fields': ('has_webcam', 'has_microphone')
+        }),
+    )
+
+    class Media:
+        js = ('js/js/computer_admin.js',)
+        css = {
+            'all': ('js/css/computer_admin.css',)
         }
 
-        /* Грид: 7 колонок по 100px, gap 16px, центрируем по горизонтали */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(7, 100px);
-            gap: 16px;
-            justify-content: center;    /* выравнивание внутри .dashboard-grid (оставшиеся 4px равномерно по бокам) */
-            margin: 0 auto;
-        }
+    def get_inventory_number(self, obj):
+        return obj.device.inventory_number
 
-        /* Карточка элемента — ровно 100x100px */
-        .grid-item {
-            width: 100px;
-            height: 100px;
-            background-color: #2c3e66;
-            border-radius: 20px;
-            box-shadow: 0 8px 14px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(255,255,255,0.3);
-            transition: all 0.2s ease;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            /* плавное изменение цвета фона и тени */
-            transition: background-color 0.25s ease, transform 0.15s ease, box-shadow 0.2s;
-        }
+    get_inventory_number.short_description = 'Инвентарный номер'
 
-        /* эффект при наведении (интерактив) */
-        .grid-item:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.2);
-        }
+    def get_hall(self, obj):
+        return obj.device.hall
 
-        /* Контейнер иконки: фикс размер 50x40 */
-        .icon-box {
-            width: 50px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            color: white;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
-            transition: all 0.2s;
-        }
+    get_hall.short_description = 'Зал'
 
-        /* Текст под иконкой */
-        .pc-label {
-            font-size: 12px;
-            font-weight: 700;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(2px);
-            padding: 3px 8px;
-            border-radius: 40px;
-            color: white;
-            letter-spacing: 0.3px;
-            font-family: 'JetBrains Mono', monospace, 'Courier New';
-            box-shadow: inset 0 0 2px rgba(255,255,255,0.4), 0 1px 2px rgba(0,0,0,0.2);
-            transition: background 0.2s;
-        }
+    def get_status(self, obj):
+        return obj.device.get_status_display()
 
-        /* Панель управления для демонстрации работы с БД (имитация получения данных) */
-        .demo-panel {
-            margin-top: 32px;
-            display: flex;
-            justify-content: center;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
+    get_status.short_description = 'Статус'
 
-        .btn {
-            background: #1e2a3e;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 60px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: inherit;
-        }
+    def get_os_display(self, obj):
+        return obj.os
 
-        .btn-primary {
-            background: #0f4c5f;
-            border-bottom: 2px solid #6ab0c6;
-        }
+    get_os_display.short_description = 'ОС'
 
-        .btn-primary:hover {
-            background: #1b6b85;
-            transform: scale(0.98);
-        }
+    def save_model(self, request, obj, form, change):
+        if change:
+            # Обновляем связанное устройство
+            device = obj.device
+            device.hall = form.cleaned_data['hall']
+            device.status = form.cleaned_data['status']
+            device.save()
 
-        .btn-warning {
-            background: #b4652d;
-            border-bottom: 2px solid #ffb347;
-        }
+            # Сохраняем компьютер
+            obj.os = form.cleaned_data['os']
+            obj.save()
+        else:
+            # При создании нового компьютера используем форму
+            obj = form.save(commit=True)
 
-        .btn-warning:hover {
-            background: #d47a3b;
-        }
 
-        .badge-info {
-            background: #00000066;
-            border-radius: 20px;
-            padding: 2px 10px;
-            font-size: 0.7rem;
-            font-weight: normal;
-        }
+@admin.register(Console)
+class ConsoleAdmin(admin.ModelAdmin):
+    form = ConsoleCreationForm
+    list_display = ('device', 'console_type', 'controller_count', 'get_inventory_number', 'get_hall', 'get_status')
+    list_filter = ('device__hall', 'device__status', 'console_type')
+    search_fields = ('device__inventory_number', 'console_type')
+    raw_id_fields = ('device',)
+    readonly_fields = ('device',)
 
-        footer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 11px;
-            color: #2c3e66;
-            font-weight: 500;
-            opacity: 0.8;
-        }
+    fieldsets = (
+        ('Общая информация', {
+            'fields': ('hall', 'status')
+        }),
+        ('Характеристики консоли', {
+            'fields': ('console_type', 'controller_count', 'storage_gb')
+        }),
+        ('Дополнительно', {
+            'fields': ('has_kinect', 'has_vr_support')
+        }),
+    )
 
-        /* адаптив для очень узких экранов — скролл, но сетка сохранит размеры */
-        @media (max-width: 860px) {
-            body {
-                padding: 16px;
-            }
-            .dashboard-grid {
-                overflow-x: auto;
-            }
-            .grid-container {
-                justify-content: flex-start;
-                padding-left: 4px;
-            }
-        }
-    </style>
-</head>
-<body>
+    def get_inventory_number(self, obj):
+        return obj.device.inventory_number
 
-<div class="dashboard-grid">
-    <!-- сама сетка 14 элементов (2 ряда по 7) -->
-    <div class="grid-container" id="dynamicGrid"></div>
+    get_inventory_number.short_description = 'Инвентарный номер'
 
-    <!-- панель имитации получения данных с БД (через JS / AJAX / fetch) -->
-    <div class="demo-panel">
-        <button class="btn btn-primary" id="refreshDataBtn">
-            <i class="fas fa-database"></i> Загрузить данные из БД (имитация)
-        </button>
-        <button class="btn btn-warning" id="randomizeLocalBtn">
-            <i class="fas fa-chart-line"></i> Случайный апдейт (тест цвета + иконки)
-        </button>
-    </div>
-    <footer>
-        <span>⚡ Каждый элемент: иконка 50x40 | текст "PC - {число}" | цвет / иконка динамически</span>
-    </footer>
-</div>
+    def get_hall(self, obj):
+        return obj.device.hall
 
-<script>
-    // --------------------------------------------------------------
-    // 1. КОНФИГУРАЦИЯ
-    // Всего элементов: 14 (2 ряда по 7)
-    const TOTAL_ITEMS = 14;
+    get_hall.short_description = 'Зал'
 
-    // Доступные иконки (FontAwesome классы) — для динамической замены
-    // все иконки имеют одинаковый размер 50x40 через стиль .icon-box (font-size:32px)
-    const ICON_SET = [
-        "fas fa-desktop",          // ПК
-        "fas fa-server",           // Сервер
-        "fas fa-laptop",           // Ноутбук
-        "fas fa-microchip",        // Чип
-        "fas fa-database",         // База данных
-        "fas fa-cloud",            // Облако
-        "fas fa-network-wired",    // Сеть
-        "fas fa-hdd",              // Жесткий диск
-        "fas fa-memory",           // Память
-        "fas fa-plug",             // Питание
-        "fas fa-wifi",             // Wi-Fi
-        "fas fa-print",            // Принтер
-        "fas fa-tv",               // Монитор
-        "fas fa-cogs"              // Шестерёнки
-    ];
+    def get_status(self, obj):
+        return obj.device.get_status_display()
 
-    // Цветовые схемы в зависимости от "состояния" (например приходят с БД)
-    // Будем менять background-color элемента в зависимости от статуса / значения
-    // В реальном Django данные с БД могут передавать status: "success", "warning", "critical", "info", "neutral"
-    // Создаём маппинг статус -> цвет фона (также можно привязать к числам)
-    const STATUS_COLOR_MAP = {
-        "optimal": "#2c7a47",      // тёмно-зелёный
-        "good": "#2a7f6e",         // бирюзовый
-        "warning": "#e9a23b",      // оранжевый
-        "critical": "#c13b3b",     // красный
-        "info": "#3f6b9e",         // синий
-        "idle": "#5a5f73",         // серо-синий
-        "maintenance": "#9b59b6",  // фиолетовый
-        "low": "#e67e22"           // тыквенный
-    };
+    get_status.short_description = 'Статус'
 
-    // Для демонстрации гибкости: массив возможных статусов
-    const STATUS_KEYS = Object.keys(STATUS_COLOR_MAP);
+    def save_model(self, request, obj, form, change):
+        if change:
+            # Обновляем связанное устройство
+            device = obj.device
+            device.hall = form.cleaned_data['hall']
+            device.status = form.cleaned_data['status']
+            device.save()
 
-    // Структура данных, которую мы получаем с "бэкенда" (Django через JSON)
-    // Каждый элемент имеет: pcNumber (число), status (строка), iconKey (индекс или название иконки)
-    // Для простоты будем хранить объекты в массиве itemsData
-    let itemsData = [];
-
-    // ссылка на DOM-контейнер
-    const gridContainer = document.getElementById('dynamicGrid');
-
-    // --------------------------------------------------------------
-    // 2. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДЛЯ ГЕНЕРАЦИИ СЛУЧАЙНЫХ ДАННЫХ (имитация БД)
-    function getRandomInt(min, max) {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
-    }
-
-    // получить случайную иконку (класс FA)
-    function getRandomIconClass() {
-        return ICON_SET[Math.floor(Math.random() * ICON_SET.length)];
-    }
-
-    // получить случайный статус (для цвета)
-    function getRandomStatus() {
-        return STATUS_KEYS[Math.floor(Math.random() * STATUS_KEYS.length)];
-    }
-
-    // Генерируем стартовый массив данных для 14 элементов
-    function generateInitialData() {
-        const data = [];
-        for (let i = 0; i < TOTAL_ITEMS; i++) {
-            // число PC от 1 до 99, чтобы красиво влезало (можно 1-999 но дизайн позволяет)
-            const pcNum = getRandomInt(1, 99);
-            const status = getRandomStatus();
-            const iconClass = getRandomIconClass();
-            data.push({
-                id: i,
-                pcNumber: pcNum,
-                status: status,
-                iconClass: iconClass
-            });
-        }
-        return data;
-    }
-
-    // Получить цвет фона по статусу (берётся из STATUS_COLOR_MAP, если нет — fallback)
-    function getColorByStatus(status) {
-        return STATUS_COLOR_MAP[status] || "#3a5e7c";
-    }
-
-    // --------------------------------------------------------------
-    // 3. ОСНОВНАЯ ФУНКЦИЯ ОТРИСОВКИ СЕТКИ (рендер)
-    // Рендерит все 14 элементов на основе актуальных itemsData.
-    // При этом автоматически обновляется: цвет фона, иконка, текст "PC - {число}"
-    function renderGrid() {
-        if (!gridContainer) return;
-        // очищаем контейнер, но можно и обновлять существующие элементы (пересоздадим для чистоты)
-        gridContainer.innerHTML = '';
-
-        for (let i = 0; i < TOTAL_ITEMS; i++) {
-            const item = itemsData[i];
-            if (!item) continue;
-
-            // Создаём карточку элемента
-            const card = document.createElement('div');
-            card.className = 'grid-item';
-            // привязываем data-id для возможных обновлений/кликов
-            card.setAttribute('data-index', i);
-            // устанавливаем цвет фона в зависимости от статуса
-            const bgColor = getColorByStatus(item.status);
-            card.style.backgroundColor = bgColor;
-
-            // Блок иконки (размер 50x40 фикс)
-            const iconDiv = document.createElement('div');
-            iconDiv.className = 'icon-box';
-            // Создаём i элемент для FontAwesome
-            const iconElem = document.createElement('i');
-            // установка классов иконки (например "fas fa-desktop")
-            iconElem.className = item.iconClass;
-            // стилизуем, чтобы иконка была по центру и размер подходил под 50x40
-            iconElem.style.fontSize = '32px';
-            iconElem.style.width = '100%';
-            iconElem.style.height = '100%';
-            iconElem.style.display = 'flex';
-            iconElem.style.alignItems = 'center';
-            iconElem.style.justifyContent = 'center';
-            iconDiv.appendChild(iconElem);
-
-            // Текст: PC - {число}
-            const textSpan = document.createElement('span');
-            textSpan.className = 'pc-label';
-            textSpan.textContent = `PC - ${item.pcNumber}`;
-
-            // Добавляем в карточку
-            card.appendChild(iconDiv);
-            card.appendChild(textSpan);
-
-            // Опционально: клик по карточке может выводить в консоль текущие данные (для отладки)
-            card.addEventListener('click', (e) => {
-                e.stopPropagation();
-                console.log(`[Элемент ${i}] Данные: PC=${item.pcNumber}, статус=${item.status}, иконка=${item.iconClass}`);
-                // В реальном приложении здесь можно открыть модалку или отправить запрос
-            });
-
-            gridContainer.appendChild(card);
-        }
-    }
-
-    // --------------------------------------------------------------
-    // 4. ОБНОВЛЕНИЕ ДАННЫХ ИЗ "БАЗЫ ДАННЫХ" (симуляция запроса к Django)
-    // Функция имитирует получение JSON с сервера. В реальном проекте тут fetch('/api/data') и затем обновление itemsData
-    function fetchDataFromDatabase() {
-        // Имитация асинхронного запроса: получаем свежие данные (случайные, но можно и кастомные)
-        // В реальном проекте замените на fetch или XMLHttpRequest, обработайте ответ от Django view
-        return new Promise((resolve) => {
-            // Эмулируем задержку сети 300мс для реалистичности
-            setTimeout(() => {
-                const newData = [];
-                for (let i = 0; i < TOTAL_ITEMS; i++) {
-                    // Генерируем данные так, будто пришли из Django ORM
-                    const pcNum = getRandomInt(1, 120);        // числа от 1 до 120
-                    // Добавляем логику: иногда число может быть большим, но на дизайн не влияет
-                    let status = getRandomStatus();
-                    // можно привязать статус к диапазону числа для демонстрации бизнес-логики
-                    // (например если число > 90 -> critical, если < 30 -> warning и т.д.)
-                    // Это показывает, как смена данных БД влияет на цвет и иконку
-                    if (pcNum > 85) status = "critical";
-                    else if (pcNum > 65) status = "warning";
-                    else if (pcNum < 20) status = "maintenance";
-                    else if (pcNum > 45 && pcNum < 60) status = "optimal";
-
-                    // иконку можно менять по какому-то правилу (например, в зависимости от четности числа)
-                    let iconClass;
-                    if (pcNum % 3 === 0) iconClass = "fas fa-server";
-                    else if (pcNum % 5 === 0) iconClass = "fas fa-cloud";
-                    else if (pcNum % 7 === 0) iconClass = "fas fa-microchip";
-                    else iconClass = ICON_SET[pcNum % ICON_SET.length];
-
-                    newData.push({
-                        id: i,
-                        pcNumber: pcNum,
-                        status: status,
-                        iconClass: iconClass
-                    });
-                }
-                resolve(newData);
-            }, 280);
-        });
-    }
-
-    // Обновить глобальный массив и перерендерить (с анимацией эффекта)
-    async function updateWithDatabaseData() {
-        // Можно добавить эффект загрузки
-        showLoaderState(true);
-        try {
-            const freshData = await fetchDataFromDatabase();
-            itemsData = freshData.slice(); // заменяем данные
-            renderGrid();
-            // небольшая анимация: проставим временный эффект
-            animateGridFlash();
-        } catch (err) {
-            console.error("Ошибка при загрузке данных из БД", err);
-        } finally {
-            showLoaderState(false);
-        }
-    }
-
-    // Эффект вспышки при обновлении (визуальная обратная связь)
-    function animateGridFlash() {
-        if (!gridContainer) return;
-        gridContainer.style.transition = "opacity 0.1s";
-        gridContainer.style.opacity = "0.7";
-        setTimeout(() => {
-            gridContainer.style.opacity = "1";
-            setTimeout(() => {
-                gridContainer.style.transition = "";
-            }, 150);
-        }, 80);
-    }
-
-    function showLoaderState(loading) {
-        const btns = document.querySelectorAll('.btn');
-        if (loading) {
-            btns.forEach(btn => btn.style.opacity = '0.6');
-            // можно добавить курсор ожидания
-            document.body.style.cursor = 'wait';
-        } else {
-            btns.forEach(btn => btn.style.opacity = '1');
-            document.body.style.cursor = 'default';
-        }
-    }
-
-    // Функция для полного обновления рандомными данными (без запроса к БД) — тест смены цвета, иконки и текста
-    function randomizeLocalData() {
-        for (let i = 0; i < TOTAL_ITEMS; i++) {
-            const newPcNum = getRandomInt(1, 99);
-            let newStatus = getRandomStatus();
-            // небольшая логика для демонстрации зависимости цвета от числа
-            if (newPcNum > 80) newStatus = "critical";
-            else if (newPcNum > 60) newStatus = "warning";
-            else if (newPcNum < 15) newStatus = "maintenance";
-
-            const newIcon = getRandomIconClass();
-            itemsData[i] = {
-                ...itemsData[i],
-                pcNumber: newPcNum,
-                status: newStatus,
-                iconClass: newIcon
-            };
-        }
-        renderGrid();
-        animateGridFlash();
-    }
-
-    // --------------------------------------------------------------
-    // 5. НАСТРОЙКА ИНТЕРАКТИВНОГО ИЗМЕНЕНИЯ ЦВЕТА / ИКОНКИ / ТЕКСТА через ПОЛЬЗОВАТЕЛЬСКИЙ СЦЕНАРИЙ
-    // Дополнительная функция: прямая эмуляция получения данных из БД для каждого элемента в отдельности
-    // (показывает гибкость: можно менять иконки и цвета по websocket или AJAX)
-    // Это просто чтобы показать, что любой элемент может менять свои параметры точечно.
-    function updateSingleItem(index, newPcNumber, newStatus, newIconClass) {
-        if (index >= 0 && index < itemsData.length) {
-            itemsData[index] = {
-                ...itemsData[index],
-                pcNumber: newPcNumber,
-                status: newStatus,
-                iconClass: newIconClass
-            };
-            // перерендер всей сетки (оптимизировано для демонстрации)
-            renderGrid();
-        }
-    }
-
-    // функция для тестирования точечного изменения через консоль (полезно разработчику)
-    window.demoUpdateSingle = updateSingleItem;
-
-    // --------------------------------------------------------------
-    // 6. ДОПОЛНИТЕЛЬНО: ДЕМОНСТРАЦИЯ РАБОТЫ С "ЗАМЕНОЙ ИКОНКИ И ЦВЕТА" при входных данных
-    // Так как в задании явно сказано "смена цвета в зависимости от входящих данных с бд. замена иконке в элементе"
-    // — функция fetchDataFromDatabase уже демонстрирует замену цвета и иконки на основе данных.
-    // Помимо этого, создадим обработчик, который вручную меняет цвет всех элементов
-    // в зависимости от нового "фильтра" / "категории". Это показывает гибкость.
-
-    // Пример обработчика "Применить настройки для всех элементов на основе среднего значения"
-    // необязательно, но расширяет понимание
-    function applyColorByNumberThreshold() {
-        // Меняем цвет в зависимости от того, больше ли число PC чем 50
-        for (let i = 0; i < TOTAL_ITEMS; i++) {
-            const num = itemsData[i].pcNumber;
-            let newStatus = itemsData[i].status;
-            if (num > 70) newStatus = "critical";
-            else if (num > 45) newStatus = "warning";
-            else if (num < 20) newStatus = "maintenance";
-            else newStatus = "optimal";
-            itemsData[i].status = newStatus;
-            // Также меняем иконку, привязывая к десяткам числа (демонстрация динамики)
-            const lastDigit = num % ICON_SET.length;
-            itemsData[i].iconClass = ICON_SET[lastDigit];
-        }
-        renderGrid();
-        animateGridFlash();
-    }
-
-    // выставим глобально для экспериментов
-    window.applyThresholdRule = applyColorByNumberThreshold;
-
-    // --------------------------------------------------------------
-    // 7. ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-    function init() {
-        // 1) Генерируем начальные данные (имитация первого ответа от БД)
-        itemsData = generateInitialData();
-        // 2) Отрисовываем сетку
-        renderGrid();
-
-        // 3) Привязываем кнопки
-        const refreshBtn = document.getElementById('refreshDataBtn');
-        const randomBtn = document.getElementById('randomizeLocalBtn');
-
-        if (refreshBtn) {
-            refreshBtn.addEventListener('click', async () => {
-                // Кнопка "Загрузить данные из БД" — имитация полноценного AJAX-запроса к Django view
-                await updateWithDatabaseData();
-            });
-        }
-
-        if (randomBtn) {
-            randomBtn.addEventListener('click', () => {
-                // Случайное обновление без "сервера", но с полной сменой цвета, иконки и текста
-                randomizeLocalData();
-            });
-        }
-
-        // Дополнительный пример автоматического обновления раз в 30 секунд (имитация пула данных)
-        // Раскомментировать если нужно, чтобы показывать постоянную смену данных с "бд"
-        // setInterval(() => {
-        //     updateWithDatabaseData();
-        // }, 30000);
-
-        console.log("Сетка готова. Элементов: 14. Размеры 100x100, gap 16px, иконка 50x40, текст PC - {число}");
-        console.log("Цвет и иконка меняются через кнопки, имитируя данные из БД.");
-    }
-
-    // старт после полной загрузки DOM
-    document.addEventListener('DOMContentLoaded', init);
-</script>
-</body>
-</html>
-
-:root {
-    --gold: #F4C542;
-    --available: #00ffaa;
-    --reserved: #3a86ff;
-    --maintenance: #ffcc00;
-    --in_use: #ff3a3a;
-}
+            # Сохраняем консоль
+            obj.save()
+        else:
+            # При создании новой консоли используем форму
+            obj = form.save(commit=True)

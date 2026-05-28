@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.contrib.auth.models import AbstractUser
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Hall(models.Model):
@@ -23,6 +25,39 @@ class Hall(models.Model):
         return self.name
 
 
+class Spot(models.Model):
+    """Место (нумерованное) внутри зала."""
+    hall = models.ForeignKey(
+        Hall,
+        on_delete=models.CASCADE,
+        related_name='spots',
+        verbose_name="Зал"
+    )
+    number = models.PositiveIntegerField(verbose_name="Номер места")
+
+    class Meta:
+        db_table = 'spots'
+        unique_together = ('hall', 'number')
+        ordering = ['hall', 'number']
+        verbose_name = "Место"
+        verbose_name_plural = "Места"
+
+    def __str__(self):
+        return f"{self.hall.name} – место {self.number}"
+
+
+@receiver(post_save, sender=Hall)
+def create_spots_for_hall(sender, instance, created, **kwargs):
+    """При сохранении зала автоматически создаёт/удаляет места по max_capacity."""
+    # Удаляем лишние места, если вместимость уменьшена
+    Spot.objects.filter(hall=instance, number__gt=instance.max_capacity).delete()
+    # Создаём недостающие
+    existing = set(Spot.objects.filter(hall=instance).values_list('number', flat=True))
+    for n in range(1, instance.max_capacity + 1):
+        if n not in existing:
+            Spot.objects.create(hall=instance, number=n)
+
+
 class Device(models.Model):
     class DeviceType(models.TextChoices):
         COMPUTER = 'computer', 'Компьютер'
@@ -34,14 +69,19 @@ class Device(models.Model):
         MAINTENANCE = 'maintenance', 'Обслуживание'
         RESERVED = 'reserved', 'Забронировано'
 
-    row = models.PositiveIntegerField(null=True, blank=True, verbose_name="Ряд")
-    column = models.PositiveIntegerField(null=True, blank=True, verbose_name="Колонка")
-
     hall = models.ForeignKey(
         Hall,
         on_delete=models.PROTECT,
         related_name='devices',
         verbose_name="Зал"
+    )
+    spot = models.OneToOneField(
+        Spot,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='device',
+        verbose_name="Место в зале"
     )
     device_type = models.CharField(
         max_length=20,
@@ -62,14 +102,15 @@ class Device(models.Model):
     )
 
     def save(self, *args, **kwargs):
-        if not self.inventory_number:
-            last_device = Device.objects.order_by('id').last()
-            if last_device:
-                new_id = last_device.id + 1
-            else:
-                new_id = 1
-            self.inventory_number = f"DEV-{new_id:05d}"
-        super().save(*args, **kwargs)
+        # Генерация инвентарного номера на основе pk (без гонки)
+        if not self.inventory_number and self.pk is None:
+            # Сначала сохраняем, чтобы получить pk
+            super().save(*args, **kwargs)
+            self.inventory_number = f"DEV-{self.pk:05d}"
+            # Сохраняем номер, не затрагивая остальные поля
+            super().save(update_fields=['inventory_number'])
+        else:
+            super().save(*args, **kwargs)
 
     class Meta:
         db_table = 'devices'
@@ -82,7 +123,6 @@ class Device(models.Model):
 
 
 class Computer(models.Model):
-    """Модель Компьютера (расширение Device)"""
     device = models.OneToOneField(
         Device,
         on_delete=models.CASCADE,
