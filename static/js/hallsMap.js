@@ -1,24 +1,66 @@
-// hallsMap.js (обновлённый)
+// hallsMap.js – финальная версия (статика в JS, склад скрыт)
 (function() {
+    // ----------------------------------------------------------------
+    // 1. СТАТИЧНАЯ КОНФИГУРАЦИЯ ЗАЛОВ
+    //    id зала должно совпадать с Hall.id в БД
+    //    spotNumber = Spot.number (место в зале)
+    // ----------------------------------------------------------------
     const HALLS_CONFIG = [
         {
-            id: 1,
-            name: 'Зал 1 (Стандарт)',
-            max_capacity: 12,
+            id: 1,                     // id зала «Стандарт»
+            name: 'Зал Стандарт',
+            max_capacity: 13,
             matrix: [
-                ['pc', 'pc', 'pc', 'pc', 'pc', 'spacer', 'con'],
-                ['pc', 'pc', 'pc', 'pc', 'pc', 'con', 'con']
+                // Ряд 1: 5 ПК, пусто, консоль
+                [
+                    { type: 'pc', spotNumber: 1 },
+                    { type: 'pc', spotNumber: 2 },
+                    { type: 'pc', spotNumber: 3 },
+                    { type: 'pc', spotNumber: 4 },
+                    { type: 'pc', spotNumber: 5 },
+                    { type: 'spacer' },
+                    { type: 'con', spotNumber: 6 }
+                ],
+                // Ряд 2: 5 ПК, 2 консоли
+                [
+                    { type: 'pc', spotNumber: 7 },
+                    { type: 'pc', spotNumber: 8 },
+                    { type: 'pc', spotNumber: 9 },
+                    { type: 'pc', spotNumber: 10 },
+                    { type: 'pc', spotNumber: 11 },
+                    { type: 'con', spotNumber: 12 },
+                    { type: 'con', spotNumber: 13 }
+                ]
             ]
         },
         {
-            id: 2,
+            id: 2,                     // id зала «VIP»
             name: 'VIP зал',
-            max_capacity: 10,
+            max_capacity: 12,
             matrix: [
-                ['spacer', 'pc', 'pc', 'pc', 'pc', 'pc', 'spacer'],
-                ['con', 'pc', 'pc', 'pc', 'pc', 'pc', 'con']
+                // Ряд 1: spacer, 5 ПК, spacer
+                [
+                    { type: 'spacer' },
+                    { type: 'pc', spotNumber: 1 },
+                    { type: 'pc', spotNumber: 2 },
+                    { type: 'pc', spotNumber: 3 },
+                    { type: 'pc', spotNumber: 4 },
+                    { type: 'pc', spotNumber: 5 },
+                    { type: 'spacer' }
+                ],
+                // Ряд 2: консоль, 5 ПК, консоль
+                [
+                    { type: 'con', spotNumber: 6 },
+                    { type: 'pc', spotNumber: 7 },
+                    { type: 'pc', spotNumber: 8 },
+                    { type: 'pc', spotNumber: 9 },
+                    { type: 'pc', spotNumber: 10 },
+                    { type: 'pc', spotNumber: 11 },
+                    { type: 'con', spotNumber: 12 }
+                ]
             ]
         }
+        // Склад (id=3) намеренно отсутствует – не показываем пользователям
     ];
 
     const statusRussian = {
@@ -28,11 +70,13 @@
         'in_use': 'Используется 🔴'
     };
 
-    let devicesData = {};
+    let devicesData = {};            // { "зал_место": { type, label, status, inventory } }
     let autoRefreshEnabled = true;
     let autoRefreshInterval = null;
 
-    // Генерация статичной HTML-сетки
+    // ----------------------------------------------------------------
+    // 2. ГЕНЕРАЦИЯ HTML-СЕТКИ (чистая статика)
+    // ----------------------------------------------------------------
     function renderStaticGrid() {
         const container = document.getElementById('hallsContainer');
         container.innerHTML = '';
@@ -62,33 +106,32 @@
             container.appendChild(hallSection);
 
             const gridUl = document.getElementById(`grid-${hall.id}`);
-            let pcCounter = 1;
-            let conCounter = 1;
 
-            hall.matrix.forEach((row, rowIndex) => {
+            hall.matrix.forEach((row) => {
                 const li = document.createElement('li');
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'grid-row';
 
-                row.forEach((cellType, colIndex) => {
+                row.forEach((cellData) => {
                     const cell = document.createElement('div');
 
-                    if (cellType === 'spacer') {
+                    if (cellData.type === 'spacer') {
                         cell.className = 'grid-cell spacer';
                         rowDiv.appendChild(cell);
                         return;
                     }
 
-                    const deviceKey = `${hall.id}_${rowIndex}_${colIndex}`;
+                    // Ключ для связи с API: id_зала_номерМеста
+                    const deviceKey = `${hall.id}_${cellData.spotNumber}`;
                     let label = '';
                     let iconSrc = '';
 
-                    if (cellType === 'pc') {
-                        label = `PC ${pcCounter++}`;
+                    if (cellData.type === 'pc') {
+                        label = `PC ${cellData.spotNumber}`;
                         iconSrc = STATIC_IMAGES.pc;
                         cell.className = 'grid-cell computer';
-                    } else if (cellType === 'con') {
-                        label = `Console ${conCounter++}`;
+                    } else if (cellData.type === 'con') {
+                        label = `Console ${cellData.spotNumber}`;
                         iconSrc = STATIC_IMAGES.console;
                         cell.className = 'grid-cell console';
                     }
@@ -101,10 +144,11 @@
                         <div class="cell-label">${label}</div>
                     `;
 
+                    // Инициализируем запись в devicesData
                     devicesData[deviceKey] = {
-                        type: cellType,
+                        type: cellData.type,
                         label: label,
-                        status: 'available',
+                        status: 'available',   // по умолчанию
                         inventory: ''
                     };
 
@@ -120,31 +164,41 @@
                 gridUl.appendChild(li);
             });
 
-            const totalDevices = document.querySelectorAll(`#grid-${hall.id} .grid-cell:not(.spacer)`).length;
+            // Подсчитываем реальные устройства (не spacer'ы) в этом зале
+            const totalDevices = Object.keys(devicesData).filter(k => k.startsWith(`${hall.id}_`)).length;
             document.getElementById(`total-${hall.id}`).textContent = totalDevices;
         });
     }
 
+    // ----------------------------------------------------------------
+    // 3. ЗАГРУЗКА СТАТУСОВ ИЗ API
+    //    API отдаёт объект: { "зал_место": { status, type, label, inventory } }
+    // ----------------------------------------------------------------
     async function loadStatusesFromDB() {
         try {
             const response = await fetch('/api/statuses/all/');
             const data = await response.json();
             if (data.success && data.statuses) {
+                // Обновляем только те ключи, которые есть в нашей статике
                 for (const [key, info] of Object.entries(data.statuses)) {
                     if (devicesData[key]) {
                         devicesData[key].status = info.status;
                         devicesData[key].inventory = info.inventory;
+                        // type и label не трогаем – они статичны
                     }
                 }
                 return true;
             }
             return false;
         } catch (error) {
-            console.error('Error loading statuses:', error);
+            console.error('Ошибка загрузки статусов:', error);
             return false;
         }
     }
 
+    // ----------------------------------------------------------------
+    // 4. ОБНОВЛЕНИЕ ВИЗУАЛА (цвета, счётчики)
+    // ----------------------------------------------------------------
     function updateVisuals() {
         for (const [key, device] of Object.entries(devicesData)) {
             const cell = document.querySelector(`.grid-cell[data-device-key="${key}"]`);
@@ -160,6 +214,7 @@
             }
         }
 
+        // Счётчики по залам
         HALLS_CONFIG.forEach(hall => {
             const cells = document.querySelectorAll(`#grid-${hall.id} .grid-cell:not(.spacer)`);
             let counts = { available: 0, reserved: 0, maintenance: 0, in_use: 0 };
@@ -175,6 +230,9 @@
         });
     }
 
+    // ----------------------------------------------------------------
+    // 5. УПРАВЛЕНИЕ ОБНОВЛЕНИЕМ
+    // ----------------------------------------------------------------
     async function refreshData() {
         const refreshBtn = document.getElementById('refreshBtn');
         refreshBtn.disabled = true;
@@ -207,6 +265,9 @@
         toggleBtn.classList.remove('btn--primary');
     }
 
+    // ----------------------------------------------------------------
+    // 6. ИНИЦИАЛИЗАЦИЯ
+    // ----------------------------------------------------------------
     function init() {
         renderStaticGrid();
         document.getElementById('refreshBtn').addEventListener('click', refreshData);
@@ -214,8 +275,8 @@
             autoRefreshEnabled = !autoRefreshEnabled;
             autoRefreshEnabled ? startAutoRefresh() : stopAutoRefresh();
         });
-        refreshData();
-        startAutoRefresh();
+        refreshData();          // первая загрузка
+        startAutoRefresh();     // автообновление каждые 30 сек
     }
 
     init();
