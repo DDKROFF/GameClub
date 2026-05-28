@@ -5,7 +5,9 @@ from django.db import models as db_models
 from .models import Hall, Spot, Device, Computer, Console
 
 
-# ---------- Вспомогательный список ОС ----------
+# -------------------------------------------------------
+# Вспомогательный список ОС
+# -------------------------------------------------------
 class OperatingSystem:
     CHOICES = [
         ('windows_11', 'Windows 11'),
@@ -16,12 +18,14 @@ class OperatingSystem:
     ]
 
 
-# ---------- Форма создания/редактирования компьютера ----------
-class ComputerCreationForm(forms.ModelForm):
+# -------------------------------------------------------
+# Единая форма для создания/редактирования Устройства
+# -------------------------------------------------------
+class DeviceForm(forms.ModelForm):
+    # Поля из Device (в модели они есть, но дублируем для полного контроля)
     hall = forms.ModelChoiceField(
         queryset=Hall.objects.all(),
         label="Зал",
-        required=True,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     spot = forms.ModelChoiceField(
@@ -30,75 +34,134 @@ class ComputerCreationForm(forms.ModelForm):
         required=False,
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+    device_type = forms.ChoiceField(
+        choices=Device.DeviceType.choices,
+        label="Тип устройства",
+        widget=forms.Select(attrs={'class': 'form-control type-select'})
+    )
     status = forms.ChoiceField(
         choices=Device.DeviceStatus.choices,
-        label="Статус",
         initial=Device.DeviceStatus.AVAILABLE,
+        label="Статус",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
+
+    # ---------- Поля компьютера ----------
+    cpu = forms.CharField(max_length=100, required=False, label="Процессор",
+                          widget=forms.TextInput(attrs={'class': 'form-control'}))
+    gpu = forms.CharField(max_length=100, required=False, label="Видеокарта",
+                          widget=forms.TextInput(attrs={'class': 'form-control'}))
+    ram_gb = forms.IntegerField(min_value=1, required=False, label="ОЗУ (ГБ)",
+                                widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    storage_gb = forms.IntegerField(min_value=1, required=False, label="Накопитель (ГБ)",
+                                    widget=forms.NumberInput(attrs={'class': 'form-control'}))
     os_choice = forms.ChoiceField(
         choices=OperatingSystem.CHOICES,
         label="Операционная система",
         required=False,
-        initial='windows_11',
         widget=forms.Select(attrs={'class': 'form-control os-select'})
     )
     os_custom = forms.CharField(
-        max_length=100,
-        label="Другая ОС",
+        max_length=100, required=False, label="Другая ОС",
+        widget=forms.TextInput(attrs={'class': 'form-control os-custom', 'placeholder': 'Введите название ОС'})
+    )
+    has_webcam = forms.BooleanField(required=False, label="Веб-камера",
+                                    widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_microphone = forms.BooleanField(required=False, label="Микрофон",
+                                        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+
+    # ---------- Поля консоли ----------
+    console_type = forms.ChoiceField(
+        choices=Console.ConsoleType.choices,
         required=False,
-        widget=forms.TextInput(attrs={
-            'class': 'form-control os-custom',
-            'placeholder': 'Введите название ОС'
-        })
+        label="Тип консоли",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    controller_count = forms.IntegerField(
+        min_value=1, max_value=8, initial=2, required=False,
+        label="Кол-во контроллеров",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
+    )
+    has_kinect = forms.BooleanField(required=False, label="Kinect/камера",
+                                    widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    has_vr_support = forms.BooleanField(required=False, label="Поддержка VR",
+                                        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}))
+    console_storage_gb = forms.IntegerField(
+        min_value=1, initial=500, required=False,
+        label="Накопитель (ГБ)",
+        widget=forms.NumberInput(attrs={'class': 'form-control'})
     )
 
     class Meta:
-        model = Computer
-        fields = ['cpu', 'gpu', 'ram_gb', 'storage_gb', 'has_webcam', 'has_microphone']
+        model = Device
+        fields = []  # все поля объявлены явно
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['ram_gb'].widget.attrs['min'] = 1
-        self.fields['storage_gb'].widget.attrs['min'] = 1
+        instance = kwargs.get('instance')
 
-        # При редактировании: подставляем текущий зал и место
-        if self.instance and self.instance.pk and hasattr(self.instance, 'device'):
-            device = self.instance.device
-            self.fields['hall'].initial = device.hall
-            self.fields['status'].initial = device.status
-            if device.spot:
-                self.fields['spot'].queryset = Spot.objects.filter(
-                    hall=device.hall
-                ).filter(
-                    db_models.Q(device__isnull=True) | db_models.Q(device=device)
-                )
-                self.fields['spot'].initial = device.spot
-            else:
-                self.fields['spot'].queryset = Spot.objects.filter(
-                    hall=device.hall, device__isnull=True
-                )
+        # Если редактируем существующее устройство – заполняем начальные значения
+        if instance and instance.pk:
+            self.fields['device_type'].initial = instance.device_type
+            self.fields['hall'].initial = instance.hall
+            self.fields['status'].initial = instance.status
 
-            # Определяем значение для os_choice
-            os_value = device.computer_details.os if hasattr(device, 'computer_details') else ''
-            found = False
-            for code, name in OperatingSystem.CHOICES:
-                if code == os_value or name == os_value:
-                    self.fields['os_choice'].initial = code
-                    found = True
-                    break
-            if not found:
-                self.fields['os_choice'].initial = 'other'
-                self.fields['os_custom'].initial = os_value
+            # Место – кверисет с учётом текущего зала и возможности оставить занятое место
+            spot_qs = Spot.objects.filter(hall=instance.hall).filter(
+                db_models.Q(device__isnull=True) | db_models.Q(device=instance)
+            )
+            self.fields['spot'].queryset = spot_qs
+            if instance.spot:
+                self.fields['spot'].initial = instance.spot
+
+            # Заполняем поля компьютера или консоли, если они есть
+            if instance.device_type == Device.DeviceType.COMPUTER:
+                try:
+                    comp = instance.computer_details
+                    self.fields['cpu'].initial = comp.cpu
+                    self.fields['gpu'].initial = comp.gpu
+                    self.fields['ram_gb'].initial = comp.ram_gb
+                    self.fields['storage_gb'].initial = comp.storage_gb
+                    os_val = comp.os
+                    found = False
+                    for code, name in OperatingSystem.CHOICES:
+                        if code == os_val or name == os_val:
+                            self.fields['os_choice'].initial = code
+                            found = True
+                            break
+                    if not found:
+                        self.fields['os_choice'].initial = 'other'
+                        self.fields['os_custom'].initial = os_val
+                    self.fields['has_webcam'].initial = comp.has_webcam
+                    self.fields['has_microphone'].initial = comp.has_microphone
+                except Computer.DoesNotExist:
+                    pass
+
+            elif instance.device_type == Device.DeviceType.CONSOLE:
+                try:
+                    cons = instance.console_details
+                    self.fields['console_type'].initial = cons.console_type
+                    self.fields['controller_count'].initial = cons.controller_count
+                    self.fields['has_kinect'].initial = cons.has_kinect
+                    self.fields['has_vr_support'].initial = cons.has_vr_support
+                    self.fields['console_storage_gb'].initial = cons.storage_gb
+                except Console.DoesNotExist:
+                    pass
+
+            # После создания тип устройства менять нельзя
+            self.fields['device_type'].disabled = True
+        else:
+            # При создании spot изначально пустой
+            self.fields['spot'].queryset = Spot.objects.none()
 
     def clean_spot(self):
         spot = self.cleaned_data.get('spot')
         hall = self.cleaned_data.get('hall')
         if spot and hall and spot.hall != hall:
-            raise forms.ValidationError("Выбранное место не принадлежит указанному залу.")
+            raise forms.ValidationError("Место не принадлежит выбранному залу.")
         if spot and hasattr(spot, 'device') and spot.device is not None:
-            # Если редактируем существующий компьютер, допускаем своё же место
-            if self.instance.pk and hasattr(self.instance, 'device') and spot.device == self.instance.device:
+            # При редактировании разрешаем то же устройство
+            if self.instance.pk and spot.device == self.instance:
                 pass
             else:
                 raise forms.ValidationError("Это место уже занято другим устройством.")
@@ -106,147 +169,112 @@ class ComputerCreationForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
-        os_choice = cleaned_data.get('os_choice')
-        os_custom = cleaned_data.get('os_custom')
-        if os_choice == 'other':
-            if not os_custom:
-                self.add_error('os_custom', 'Укажите название операционной системы')
+        device_type = cleaned_data.get('device_type')
+
+        # Валидация обязательных полей в зависимости от типа
+        if device_type == Device.DeviceType.COMPUTER:
+            if not cleaned_data.get('cpu'):
+                self.add_error('cpu', 'Укажите процессор.')
+            if not cleaned_data.get('gpu'):
+                self.add_error('gpu', 'Укажите видеокарту.')
+            if not cleaned_data.get('ram_gb'):
+                self.add_error('ram_gb', 'Укажите объём ОЗУ.')
+            if not cleaned_data.get('storage_gb'):
+                self.add_error('storage_gb', 'Укажите объём накопителя.')
+            os_choice = cleaned_data.get('os_choice')
+            os_custom = cleaned_data.get('os_custom')
+            if os_choice == 'other' and not os_custom:
+                self.add_error('os_custom', 'Укажите название ОС.')
+            if os_choice and os_choice != 'other':
+                for code, name in OperatingSystem.CHOICES:
+                    if code == os_choice:
+                        cleaned_data['os'] = name
+                        break
             else:
                 cleaned_data['os'] = os_custom
-        else:
-            for code, name in OperatingSystem.CHOICES:
-                if code == os_choice:
-                    cleaned_data['os'] = name
-                    break
+        elif device_type == Device.DeviceType.CONSOLE:
+            if not cleaned_data.get('console_type'):
+                self.add_error('console_type', 'Выберите тип консоли.')
+            if not cleaned_data.get('controller_count'):
+                self.add_error('controller_count', 'Укажите количество контроллеров.')
+            if not cleaned_data.get('console_storage_gb'):
+                self.add_error('console_storage_gb', 'Укажите объём накопителя.')
+
         return cleaned_data
 
     def save(self, commit=True):
-        device = Device(
-            hall=self.cleaned_data['hall'],
-            device_type='computer',
-            status=self.cleaned_data['status'],
-            spot=self.cleaned_data.get('spot')
-        )
+        # Сначала сохраняем Device
+        device = super().save(commit=False)
+        device.hall = self.cleaned_data['hall']
+        device.device_type = self.cleaned_data['device_type']
+        device.status = self.cleaned_data['status']
+        device.spot = self.cleaned_data.get('spot')
         if commit:
-            device.save()
-            computer = super().save(commit=False)
-            computer.device = device
-            computer.os = self.cleaned_data['os']
-            computer.save()
-            return computer
+            device.save()  # здесь сгенерируется inventory_number
         else:
-            computer = super().save(commit=False)
-            computer.device = device
-            computer.os = self.cleaned_data['os']
-            return computer
-
-
-# ---------- Форма создания/редактирования консоли ----------
-class ConsoleCreationForm(forms.ModelForm):
-    hall = forms.ModelChoiceField(
-        queryset=Hall.objects.all(),
-        label="Зал",
-        required=True,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    spot = forms.ModelChoiceField(
-        queryset=Spot.objects.none(),
-        label="Место в зале",
-        required=False,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    status = forms.ChoiceField(
-        choices=Device.DeviceStatus.choices,
-        label="Статус",
-        initial=Device.DeviceStatus.AVAILABLE,
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-
-    class Meta:
-        model = Console
-        fields = ['console_type', 'controller_count', 'has_kinect', 'has_vr_support', 'storage_gb']
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['controller_count'].initial = 2
-        self.fields['storage_gb'].initial = 500
-        self.fields['console_type'].widget.attrs['class'] = 'form-control'
-        self.fields['controller_count'].widget.attrs['class'] = 'form-control'
-        self.fields['storage_gb'].widget.attrs['class'] = 'form-control'
-
-        # При редактировании
-        if self.instance and self.instance.pk and hasattr(self.instance, 'device'):
-            device = self.instance.device
-            self.fields['hall'].initial = device.hall
-            self.fields['status'].initial = device.status
-            if device.spot:
-                self.fields['spot'].queryset = Spot.objects.filter(
-                    hall=device.hall
-                ).filter(
-                    db_models.Q(device__isnull=True) | db_models.Q(device=device)
-                )
-                self.fields['spot'].initial = device.spot
-            else:
-                self.fields['spot'].queryset = Spot.objects.filter(
-                    hall=device.hall, device__isnull=True
-                )
-
-    def clean_spot(self):
-        spot = self.cleaned_data.get('spot')
-        hall = self.cleaned_data.get('hall')
-        if spot and hall and spot.hall != hall:
-            raise forms.ValidationError("Выбранное место не принадлежит указанному залу.")
-        if spot and hasattr(spot, 'device') and spot.device is not None:
-            if self.instance.pk and hasattr(self.instance, 'device') and spot.device == self.instance.device:
-                pass
-            else:
-                raise forms.ValidationError("Это место уже занято другим устройством.")
-        return spot
-
-    def save(self, commit=True):
-        device = Device(
-            hall=self.cleaned_data['hall'],
-            device_type='console',
-            status=self.cleaned_data['status'],
-            spot=self.cleaned_data.get('spot')
-        )
-        if commit:
+            # Если commit=False (редко в админке), всё равно надо сохранить, чтобы получить pk
             device.save()
-            console = super().save(commit=False)
-            console.device = device
-            console.save()
-            return console
-        else:
-            console = super().save(commit=False)
-            console.device = device
-            return console
+
+        # Удаляем старые связанные записи, если тип поменялся (хотя мы запретили смену)
+        if device.device_type == Device.DeviceType.COMPUTER:
+            # Удаляем возможную консоль
+            Console.objects.filter(device=device).delete()
+            computer, _ = Computer.objects.update_or_create(
+                device=device,
+                defaults={
+                    'cpu': self.cleaned_data.get('cpu', ''),
+                    'gpu': self.cleaned_data.get('gpu', ''),
+                    'ram_gb': self.cleaned_data.get('ram_gb', 1),
+                    'storage_gb': self.cleaned_data.get('storage_gb', 1),
+                    'os': self.cleaned_data.get('os', ''),
+                    'has_webcam': self.cleaned_data.get('has_webcam', False),
+                    'has_microphone': self.cleaned_data.get('has_microphone', False),
+                }
+            )
+        elif device.device_type == Device.DeviceType.CONSOLE:
+            Computer.objects.filter(device=device).delete()
+            Console.objects.update_or_create(
+                device=device,
+                defaults={
+                    'console_type': self.cleaned_data.get('console_type', 'ps5'),
+                    'controller_count': self.cleaned_data.get('controller_count', 2),
+                    'has_kinect': self.cleaned_data.get('has_kinect', False),
+                    'has_vr_support': self.cleaned_data.get('has_vr_support', False),
+                    'storage_gb': self.cleaned_data.get('console_storage_gb', 500),
+                }
+            )
+        return device
 
 
-# ---------- Inline для отображения мест в зале ----------
+# -------------------------------------------------------
+# Inline для отображения мест в зале
+# -------------------------------------------------------
 class SpotInline(admin.TabularInline):
     model = Spot
-    fields = ('number', 'device_info', 'device_status')
-    readonly_fields = ('device_info', 'device_status')
+    fields = ('number', 'device_type_info', 'device_status_info')
+    readonly_fields = ('device_type_info', 'device_status_info')
     can_delete = False
     extra = 0
 
-    def device_info(self, obj):
+    def device_type_info(self, obj):
         if hasattr(obj, 'device') and obj.device:
             return obj.device.get_device_type_display()
         return "—"
-    device_info.short_description = "Тип устройства"
+    device_type_info.short_description = "Тип устройства"
 
-    def device_status(self, obj):
+    def device_status_info(self, obj):
         if hasattr(obj, 'device') and obj.device:
             return obj.device.get_status_display()
         return "—"
-    device_status.short_description = "Статус"
+    device_status_info.short_description = "Статус"
 
     def has_add_permission(self, request, obj=None):
         return False
 
 
-# ---------- Админ-класс для залов ----------
+# -------------------------------------------------------
+# Админ-класс для залов
+# -------------------------------------------------------
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
     list_display = ('name', 'max_capacity', 'created_at')
@@ -254,138 +282,59 @@ class HallAdmin(admin.ModelAdmin):
     inlines = [SpotInline]
 
 
-# ---------- Админ-класс для устройств ----------
+# -------------------------------------------------------
+# Админ-класс для устройств (единственная точка управления)
+# -------------------------------------------------------
 @admin.register(Device)
 class DeviceAdmin(admin.ModelAdmin):
-    list_display = ('inventory_number', 'device_type', 'status', 'hall', 'spot_info', 'get_details_link')
+    form = DeviceForm
+    list_display = ('inventory_number', 'device_type', 'status', 'hall', 'spot_info')
     list_filter = ('device_type', 'status', 'hall')
     search_fields = ('inventory_number',)
-    readonly_fields = ('inventory_number', 'device_type')
+    readonly_fields = ('inventory_number',)
+
+    fieldsets = (
+        ('Общая информация', {
+            'fields': ('device_type', 'hall', 'spot', 'status')
+        }),
+        ('Характеристики компьютера', {
+            'fields': (
+                'cpu', 'gpu', 'ram_gb', 'storage_gb',
+                'os_choice', 'os_custom',
+                'has_webcam', 'has_microphone',
+            ),
+            'classes': ('computer-fields',),
+        }),
+        ('Характеристики консоли', {
+            'fields': (
+                'console_type', 'controller_count', 'console_storage_gb',
+                'has_kinect', 'has_vr_support',
+            ),
+            'classes': ('console-fields',),
+        }),
+    )
+
+    class Media:
+        js = ('js/device_admin.js',)
+        css = {
+            'all': ('css/device_admin.css',)
+        }
 
     def spot_info(self, obj):
         if obj.spot:
             return f"Место {obj.spot.number}"
-        return "Склад (без места)"
+        return "Склад"
     spot_info.short_description = "Место"
 
-    def get_details_link(self, obj):
-        if obj.device_type == 'computer' and hasattr(obj, 'computer_details'):
-            url = f'/js/devices/computer/{obj.computer_details.pk}/change/'
-            return format_html('<a href="{}">Просмотр компьютера</a>', url)
-        elif obj.device_type == 'console' and hasattr(obj, 'console_details'):
-            url = f'/js/devices/console/{obj.console_details.pk}/change/'
-            return format_html('<a href="{}">Просмотр консоли</a>', url)
-        return '-'
-    get_details_link.short_description = 'Детали'
+    def get_form(self, request, obj=None, **kwargs):
+        form = super().get_form(request, obj, **kwargs)
+        # При создании скрываем ненужные секции через JS, здесь просто возвращаем форму
+        return form
 
 
-# ---------- Админ-класс для компьютеров ----------
-@admin.register(Computer)
-class ComputerAdmin(admin.ModelAdmin):
-    form = ComputerCreationForm
-    list_display = ('device', 'cpu', 'ram_gb', 'storage_gb', 'get_os_display', 'get_inventory_number',
-                    'get_hall', 'get_status')
-    list_filter = ('device__hall', 'device__status', 'os')
-    search_fields = ('device__inventory_number', 'cpu', 'os')
-    raw_id_fields = ('device',)
-    readonly_fields = ('device',)
-
-    fieldsets = (
-        ('Общая информация', {
-            'fields': ('hall', 'spot', 'status')
-        }),
-        ('Технические характеристики', {
-            'fields': ('cpu', 'gpu', 'ram_gb', 'storage_gb')
-        }),
-        ('Операционная система', {
-            'fields': ('os_choice', 'os_custom'),
-            'description': 'Выберите операционную систему из списка или укажите свою'
-        }),
-        ('Дополнительно', {
-            'fields': ('has_webcam', 'has_microphone')
-        }),
-    )
-
-    class Media:
-        js = ('js/computer_admin.js',)
-        css = {
-            'all': ('css/computer_admin.css',)
-        }
-
-    def get_inventory_number(self, obj):
-        return obj.device.inventory_number
-    get_inventory_number.short_description = 'Инвентарный номер'
-
-    def get_hall(self, obj):
-        return obj.device.hall
-    get_hall.short_description = 'Зал'
-
-    def get_status(self, obj):
-        return obj.device.get_status_display()
-    get_status.short_description = 'Статус'
-
-    def get_os_display(self, obj):
-        return obj.os
-    get_os_display.short_description = 'ОС'
-
-    def save_model(self, request, obj, form, change):
-        if change:
-            device = obj.device
-            device.hall = form.cleaned_data['hall']
-            device.status = form.cleaned_data['status']
-            device.spot = form.cleaned_data.get('spot')
-            device.save()
-            obj.os = form.cleaned_data['os']
-            obj.save()
-        else:
-            # При создании форма уже всё сохраняет
-            form.save(commit=True)
-
-
-# ---------- Админ-класс для консолей ----------
-@admin.register(Console)
-class ConsoleAdmin(admin.ModelAdmin):
-    form = ConsoleCreationForm
-    list_display = ('device', 'console_type', 'controller_count', 'get_inventory_number', 'get_hall', 'get_status')
-    list_filter = ('device__hall', 'device__status', 'console_type')
-    search_fields = ('device__inventory_number', 'console_type')
-    raw_id_fields = ('device',)
-    readonly_fields = ('device',)
-
-    fieldsets = (
-        ('Общая информация', {
-            'fields': ('hall', 'spot', 'status')
-        }),
-        ('Характеристики консоли', {
-            'fields': ('console_type', 'controller_count', 'storage_gb')
-        }),
-        ('Дополнительно', {
-            'fields': ('has_kinect', 'has_vr_support')
-        }),
-    )
-
-    class Media:
-        js = ('js/console_admin.js',)
-
-    def get_inventory_number(self, obj):
-        return obj.device.inventory_number
-    get_inventory_number.short_description = 'Инвентарный номер'
-
-    def get_hall(self, obj):
-        return obj.device.hall
-    get_hall.short_description = 'Зал'
-
-    def get_status(self, obj):
-        return obj.device.get_status_display()
-    get_status.short_description = 'Статус'
-
-    def save_model(self, request, obj, form, change):
-        if change:
-            device = obj.device
-            device.hall = form.cleaned_data['hall']
-            device.status = form.cleaned_data['status']
-            device.spot = form.cleaned_data.get('spot')
-            device.save()
-            obj.save()
-        else:
-            form.save(commit=True)
+# -------------------------------------------------------
+# Computer и Console больше не регистрируем отдельно,
+# они управляются через DeviceAdmin.
+# -------------------------------------------------------
+# admin.site.unregister(Computer)  # если были зарегистрированы ранее
+# admin.site.unregister(Console)
