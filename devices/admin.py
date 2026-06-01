@@ -330,11 +330,3 @@ class DeviceAdmin(admin.ModelAdmin):
         form = super().get_form(request, obj, **kwargs)
         # При создании скрываем ненужные секции через JS, здесь просто возвращаем форму
         return form
-
-
-# -------------------------------------------------------
-# Computer и Console больше не регистрируем отдельно,
-# они управляются через DeviceAdmin.
-# -------------------------------------------------------
-# admin.site.unregister(Computer)  # если были зарегистрированы ранее
-# admin.site.unregister(Console)

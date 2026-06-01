@@ -1,24 +1,22 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils import timezone
-from .models import Hall, Device
-import json
-
+from .models import Device
 
 def halls_map(request):
-    """Карта залов - отдаёт статичный HTML"""
-    return render(request, 'devices/hallsMap.html')
+    devices = Device.objects.select_related(
+        'hall', 'spot', 'computer_details', 'console_details'
+    ).all()
+    return render(request, 'devices/hallsMap.html', {'devices': devices})
 
-
-def api_get_all_statuses(request):
+def api_status_all(request):
     """API: возвращает статусы ВСЕХ устройств, привязанных к местам"""
     devices = Device.objects.select_related('hall', 'spot').all()
 
     all_statuses = {}
     for device in devices:
         if device.spot is None:
-            continue   # устройства без места не показываем на карте
-        # Ключ: id_зала_номерМеста
+            continue
         key = f"{device.hall.id}_{device.spot.number}"
         all_statuses[key] = {
             'status': device.status,
@@ -26,6 +24,7 @@ def api_get_all_statuses(request):
             'type': device.device_type,
             'label': str(device),
             'inventory': device.inventory_number,
+            'hall_name': device.hall.name,
         }
 
     return JsonResponse({

@@ -1,17 +1,13 @@
-// hallsMap.js – финальная версия (статика в JS, склад скрыт)
 (function() {
     // ----------------------------------------------------------------
     // 1. СТАТИЧНАЯ КОНФИГУРАЦИЯ ЗАЛОВ
-    //    id зала должно совпадать с Hall.id в БД
-    //    spotNumber = Spot.number (место в зале)
     // ----------------------------------------------------------------
     const HALLS_CONFIG = [
         {
-            id: 1,                     // id зала «Стандарт»
+            id: 1,
             name: 'Зал Стандарт',
             max_capacity: 13,
             matrix: [
-                // Ряд 1: 5 ПК, пусто, консоль
                 [
                     { type: 'pc', spotNumber: 1 },
                     { type: 'pc', spotNumber: 2 },
@@ -21,7 +17,6 @@
                     { type: 'spacer' },
                     { type: 'con', spotNumber: 6 }
                 ],
-                // Ряд 2: 5 ПК, 2 консоли
                 [
                     { type: 'pc', spotNumber: 7 },
                     { type: 'pc', spotNumber: 8 },
@@ -34,11 +29,10 @@
             ]
         },
         {
-            id: 2,                     // id зала «VIP»
+            id: 2,
             name: 'VIP зал',
             max_capacity: 12,
             matrix: [
-                // Ряд 1: spacer, 5 ПК, spacer
                 [
                     { type: 'spacer' },
                     { type: 'pc', spotNumber: 1 },
@@ -48,7 +42,6 @@
                     { type: 'pc', spotNumber: 5 },
                     { type: 'spacer' }
                 ],
-                // Ряд 2: консоль, 5 ПК, консоль
                 [
                     { type: 'con', spotNumber: 6 },
                     { type: 'pc', spotNumber: 7 },
@@ -60,7 +53,6 @@
                 ]
             ]
         }
-        // Склад (id=3) намеренно отсутствует – не показываем пользователям
     ];
 
     const statusRussian = {
@@ -70,18 +62,22 @@
         'in_use': 'Используется 🔴'
     };
 
-    let devicesData = {};            // { "зал_место": { type, label, status, inventory } }
+    let devicesData = {};
     let autoRefreshEnabled = true;
     let autoRefreshInterval = null;
 
     // ----------------------------------------------------------------
-    // 2. ГЕНЕРАЦИЯ HTML-СЕТКИ (чистая статика)
+    // 2. ГЕНЕРАЦИЯ HTML-СЕТКИ
     // ----------------------------------------------------------------
     function renderStaticGrid() {
         const container = document.getElementById('hallsContainer');
         container.innerHTML = '';
 
         HALLS_CONFIG.forEach(hall => {
+            // Счетчики сбрасываются индивидуально для каждого зала
+            let pcCounter = 0;
+            let conCounter = 0;
+
             const hallSection = document.createElement('div');
             hallSection.className = 'map-section';
             hallSection.dataset.hallId = hall.id;
@@ -121,40 +117,45 @@
                         return;
                     }
 
-                    // Ключ для связи с API: id_зала_номерМеста
                     const deviceKey = `${hall.id}_${cellData.spotNumber}`;
                     let label = '';
                     let iconSrc = '';
 
+                    // Раздельный инкремент ПК и Консолей
                     if (cellData.type === 'pc') {
-                        label = `PC ${cellData.spotNumber}`;
+                        pcCounter++;
+                        label = `PC ${pcCounter}`;
                         iconSrc = STATIC_IMAGES.pc;
                         cell.className = 'grid-cell computer';
                     } else if (cellData.type === 'con') {
-                        label = `Console ${cellData.spotNumber}`;
+                        conCounter++;
+                        label = `CON ${conCounter}`;
                         iconSrc = STATIC_IMAGES.console;
                         cell.className = 'grid-cell console';
                     }
 
                     cell.setAttribute('data-device-key', deviceKey);
                     cell.innerHTML = `
-                        <div class="cell-tooltip"></div>
                         <div class="status-dot"></div>
                         <div class="cell-icon"><img src="${iconSrc}" alt="${label}"></div>
                         <div class="cell-label">${label}</div>
                     `;
 
-                    // Инициализируем запись в devicesData
                     devicesData[deviceKey] = {
                         type: cellData.type,
                         label: label,
-                        status: 'available',   // по умолчанию
-                        inventory: ''
+                        status: 'available',
+                        inventory: '',
+                        hallName: hall.name,
+                        spotNumber: cellData.spotNumber,
+                        info: null
                     };
 
+                    cell.setAttribute('title', `${label} – ${statusRussian['available']}`);
+
+                    // Привязка клика к открытию модального окна
                     cell.addEventListener('click', () => {
-                        const status = devicesData[deviceKey]?.status || 'available';
-                        alert(`${label}\nСтатус: ${statusRussian[status]}`);
+                        openDeviceModal(deviceKey);
                     });
 
                     rowDiv.appendChild(cell);
@@ -164,7 +165,6 @@
                 gridUl.appendChild(li);
             });
 
-            // Подсчитываем реальные устройства (не spacer'ы) в этом зале
             const totalDevices = Object.keys(devicesData).filter(k => k.startsWith(`${hall.id}_`)).length;
             document.getElementById(`total-${hall.id}`).textContent = totalDevices;
         });
@@ -172,19 +172,17 @@
 
     // ----------------------------------------------------------------
     // 3. ЗАГРУЗКА СТАТУСОВ ИЗ API
-    //    API отдаёт объект: { "зал_место": { status, type, label, inventory } }
     // ----------------------------------------------------------------
     async function loadStatusesFromDB() {
         try {
             const response = await fetch('/api/statuses/all/');
             const data = await response.json();
             if (data.success && data.statuses) {
-                // Обновляем только те ключи, которые есть в нашей статике
                 for (const [key, info] of Object.entries(data.statuses)) {
                     if (devicesData[key]) {
                         devicesData[key].status = info.status;
-                        devicesData[key].inventory = info.inventory;
-                        // type и label не трогаем – они статичны
+                        devicesData[key].inventory = info.inventory || '';
+                        devicesData[key].info = info;
                     }
                 }
                 return true;
@@ -197,28 +195,36 @@
     }
 
     // ----------------------------------------------------------------
-    // 4. ОБНОВЛЕНИЕ ВИЗУАЛА (цвета, счётчики)
+    // 4. ОБНОВЛЕНИЕ ВИЗУАЛА И СКРЫТИЕ СКЛАДА
     // ----------------------------------------------------------------
     function updateVisuals() {
         for (const [key, device] of Object.entries(devicesData)) {
             const cell = document.querySelector(`.grid-cell[data-device-key="${key}"]`);
             if (!cell) continue;
 
+            // Проверка: находится ли устройство на складе
+            const info = device.info;
+            if (info && (info.is_warehouse || info.spot === null || info.spot === 'Склад')) {
+                cell.style.visibility = 'hidden';
+                cell.style.pointerEvents = 'none';
+                continue;
+            } else {
+                cell.style.visibility = 'visible';
+                cell.style.pointerEvents = 'auto';
+            }
+
             const status = device.status;
             cell.classList.remove('available', 'reserved', 'maintenance', 'in_use');
             cell.classList.add(status);
 
-            const tooltip = cell.querySelector('.cell-tooltip');
-            if (tooltip) {
-                tooltip.textContent = `${device.label} – ${statusRussian[status]}`;
-            }
+            cell.setAttribute('title', `${device.label} (Инв. №${device.inventory || '—'}) – ${statusRussian[status] || status}`);
         }
 
-        // Счётчики по залам
         HALLS_CONFIG.forEach(hall => {
             const cells = document.querySelectorAll(`#grid-${hall.id} .grid-cell:not(.spacer)`);
             let counts = { available: 0, reserved: 0, maintenance: 0, in_use: 0 };
             cells.forEach(cell => {
+                if (cell.style.visibility === 'hidden') return; // Не учитываем скрытые складские устройства
                 const key = cell.getAttribute('data-device-key');
                 const status = devicesData[key]?.status || 'available';
                 if (counts.hasOwnProperty(status)) counts[status]++;
@@ -231,7 +237,62 @@
     }
 
     // ----------------------------------------------------------------
-    // 5. УПРАВЛЕНИЕ ОБНОВЛЕНИЕМ
+    // 5. УПРАВЛЕНИЕ РАБОТОЙ МОДАЛЬНОГО ОКНА
+    // ----------------------------------------------------------------
+    function openDeviceModal(deviceKey) {
+        const device = devicesData[deviceKey];
+        if (!device) return;
+
+        const info = device.info || {};
+        const modal = document.getElementById('specModal');
+        const modalName = document.getElementById('modalDeviceName');
+        const modalLocation = document.getElementById('modalDeviceLocation');
+        const specsTable = document.getElementById('specsTable');
+        const bookBtn = document.getElementById('bookBtn');
+
+        // Название с инвентарным номером
+        modalName.textContent = info.inventory ? `${device.label} (Инв. № ${info.inventory})` : device.label;
+
+        const statusText = statusRussian[device.status] || device.status;
+        modalLocation.textContent = `${device.hallName} • Место ${device.spotNumber} (${statusText})`;
+
+        let tableHTML = '';
+        if (device.type === 'pc') {
+            tableHTML = `
+                <tr><td>Процессор (CPU)</td><td>${info.cpu || info.specCpu || '—'}</td></tr>
+                <tr><td>Видеокарта (GPU)</td><td>${info.gpu || info.specGpu || '—'}</td></tr>
+                <tr><td>Оперативная память</td><td>${info.ram_gb || info.ram || info.specRam || '—'}</td></tr>
+                <tr><td>Накопитель</td><td>${info.storage_gb || info.storage || info.specStorage || '—'}</td></tr>
+                <tr><td>Операционная система</td><td>${info.os || info.specOs || '—'}</td></tr>
+            `;
+        } else if (device.type === 'con') {
+            tableHTML = `
+                <tr><td>Тип консоли</td><td>${info.console_type || info.get_console_type_display || info.specCtype || '—'}</td></tr>
+                <tr><td>Геймпады (кол-во)</td><td>${info.controller_count || info.specGamepads || '—'} шт.</td></tr>
+                <tr><td>Объем памяти</td><td>${info.storage_gb || info.storage || info.specStorage || '—'}</td></tr>
+                <tr><td>Поддержка VR</td><td>${info.has_vr_support || info.specVr || 'Нет'}</td></tr>
+            `;
+        }
+        specsTable.innerHTML = tableHTML;
+
+        // Передача ID для формы бронирования
+        const dbId = info.id || info.deviceId;
+        if (dbId) {
+            bookBtn.href = `/bookings/create/?device_id=${dbId}`;
+            bookBtn.style.display = 'block';
+        } else {
+            bookBtn.style.display = 'none';
+        }
+
+        modal.classList.add('active');
+    }
+
+    const hideModal = () => {
+        document.getElementById('specModal').classList.remove('active');
+    };
+
+    // ----------------------------------------------------------------
+    // 6. УПРАВЛЕНИЕ ОБНОВЛЕНИЕМ И ИНИЦИАЛИЗАЦИЯ
     // ----------------------------------------------------------------
     async function refreshData() {
         const refreshBtn = document.getElementById('refreshBtn');
@@ -254,7 +315,7 @@
         }, 30000);
         const toggleBtn = document.getElementById('autoRefreshToggle');
         toggleBtn.innerHTML = 'Автообновление: ВКЛ';
-        toggleBtn.classList.add('btn--primary');
+        toggleBtn.classList.add('hmbtn--primary');
     }
 
     function stopAutoRefresh() {
@@ -262,22 +323,30 @@
         autoRefreshInterval = null;
         const toggleBtn = document.getElementById('autoRefreshToggle');
         toggleBtn.innerHTML = 'Автообновление: ВЫКЛ';
-        toggleBtn.classList.remove('btn--primary');
+        toggleBtn.classList.remove('hmbtn--primary');
     }
 
-    // ----------------------------------------------------------------
-    // 6. ИНИЦИАЛИЗАЦИЯ
-    // ----------------------------------------------------------------
     function init() {
         renderStaticGrid();
+
+        // Слушатели модального окна
+        const closeModal = document.getElementById('closeModal');
+        const modalElement = document.getElementById('specModal');
+        if (closeModal) closeModal.addEventListener('click', hideModal);
+        if (modalElement) {
+            modalElement.addEventListener('click', (e) => {
+                if (e.target === modalElement) hideModal();
+            });
+        }
+
         document.getElementById('refreshBtn').addEventListener('click', refreshData);
         document.getElementById('autoRefreshToggle').addEventListener('click', () => {
             autoRefreshEnabled = !autoRefreshEnabled;
             autoRefreshEnabled ? startAutoRefresh() : stopAutoRefresh();
         });
-        refreshData();          // первая загрузка
-        startAutoRefresh();     // автообновление каждые 30 сек
+        refreshData();
+        startAutoRefresh();
     }
 
-    init();
+    document.addEventListener('DOMContentLoaded', init);
 })();

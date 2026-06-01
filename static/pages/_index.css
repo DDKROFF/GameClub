@@ -214,31 +214,40 @@
 
 .map-container {
     width: 100%;
-    height: 380px;
+    height: 450px; /* Можете изменить высоту карты здесь (было 380px) */
     background: rgba(27, 31, 35, 0.8);
     border-radius: 48px;
     border: 1px solid #333a42;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    overflow: hidden; /* Важно: чтобы карта не вылезала за скругленные углы */
 }
 
-.map-container i {
-    font-size: 70px;
-    color: var(--gold);
-    margin-bottom: 20px;
+/* Обертка внутри контейнера, которая занимает 100% пространства */
+.map-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
-.map-container p {
-    color: #bfcedf;
-    font-size: 1.2rem;
-    background: rgba(0,0,0,0.6);
-    padding: 12px 32px;
-    border-radius: 60px;
-    backdrop-filter: blur(4px);
+/* Стилизация iframe, чтобы он занимал всю ширину и высоту */
+.map-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
 }
 
-.map-container p i {
-    margin-right: 10px;
+/* Аккуратные стили для обязательных ссылок Яндекса, чтобы они не бросались в глаза */
+.map-link {
+    color: #eee;
+    font-size: 12px;
+    position: absolute;
+    left: 15px;
+    z-index: 2;
+    text-decoration: none;
+    background: rgba(0, 0, 0, 0.5); /* Добавим подложку, чтобы текст читался */
+    padding: 2px 6px;
+    border-radius: 4px;
 }
+.map-link.link-1 { top: 10px; }
+.map-link.link-2 { top: 32px; }
+.map-link.link-3 { top: 54px; }

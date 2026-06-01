@@ -57,6 +57,25 @@ body {
     -webkit-text-fill-color: transparent;
 }
 
+.auth-btn {
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+.auth-btn:hover {
+    background: var(--gold);
+    color: #0a0c0e;
+}
+
 /* ========== ЯЗЫЧОК ========== */
 .navbar {
     background: transparent;

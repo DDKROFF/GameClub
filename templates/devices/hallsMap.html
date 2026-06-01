@@ -4,7 +4,6 @@
 {% block title %}GFive | Карта залов{% endblock %}
 
 {% block content %}
-<!-- Передаём пути к иконкам в JS -->
 <script>
     const STATIC_IMAGES = {
         pc: "{% static 'images/icons/PC.svg' %}",
@@ -37,11 +36,26 @@
             <div class="legend-item"><div class="legend-color reserved"></div> Забронировано</div>
             <div class="legend-item"><div class="legend-color maintenance"></div> Обслуживание</div>
             <div class="legend-item"><div class="legend-color in_use"></div> Используется</div>
-            <div class="legend-item"><div class="legend-color computer"></div> Компьютер</div>
-            <div class="legend-item"><div class="legend-color console"></div> Консоль</div>
         </div>
     </div>
 </section>
+
+<div id="specModal" class="modal-backdrop">
+    <div class="modal-card">
+        <button class="close-modal-btn" id="closeModal">&times;</button>
+        <div class="modal-header">
+            <h2 id="modalDeviceName">Характеристики устройства</h2>
+            <p id="modalDeviceLocation"></p>
+        </div>
+        <div class="modal-body">
+            <table class="specs-table" id="specsTable">
+                </table>
+        </div>
+        <div class="modal-footer">
+            <a href="#" id="bookBtn" class="book-action-btn">Забронировать устройство</a>
+        </div>
+    </div>
+</div>
 
 <script src="{% static 'js/hallsMap.js' %}"></script>
 {% endblock %}
