@@ -33,51 +33,6 @@
     {% block content %}
 
     {% endblock %}
-    <div class="modal-overlay" id="authModal">
-        <div class="modal">
-            <button class="modal-close" id="closeModal">&times;</button>
-            <div class="modal-tabs">
-                <button class="modal-tab active" data-tab="login">Войти</button>
-                <button class="modal-tab" data-tab="register">Регистрация</button>
-            </div>
-
-            <!-- Форма входа -->
-            <form id="loginForm" class="modal-form active" method="post" action="#">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="login-username">Логин</label>
-                    <input type="text" id="login-username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="login-password">Пароль</label>
-                    <input type="password" id="login-password" name="password" required>
-                </div>
-                <button type="submit" class="modal-submit">Войти</button>
-            </form>
-
-            <!-- Форма регистрации -->
-            <form id="registerForm" class="modal-form" method="post" action="#">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="reg-username">Логин</label>
-                    <input type="text" id="reg-username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg-email">Почта</label>
-                    <input type="email" id="reg-email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg-password">Пароль</label>
-                    <input type="password" id="reg-password" name="password" required>
-                </div>
-                <div class="form-group">
-                    <label for="reg-password2">Повторите пароль</label>
-                    <input type="password" id="reg-password2" name="password2" required>
-                </div>
-                <button type="submit" class="modal-submit">Зарегистрироваться</button>
-            </form>
-        </div>
-    </div>
 </main>
 <script src="{% static 'js/auth.js' %}"></script>
 <footer class="footer">

@@ -1,9 +1,8 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 import re
 from .models import CustomUser
-
 
 class RegisterForm(UserCreationForm):
     phone = forms.CharField(label='Телефон', max_length=16)
@@ -47,43 +46,3 @@ class RegisterForm(UserCreationForm):
         if commit:
             user.save()
         return user
-
-'''
-class MultiFieldLoginForm(forms.Form):
-    identity = forms.CharField(
-        label='Телефон, email или логин',
-        max_length=150,
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Телефон, email или логин',
-            'autofocus': True,
-        })
-    )
-    password = forms.CharField(
-        label='Пароль',
-        strip=False,
-        widget=forms.PasswordInput(attrs={'placeholder': 'Пароль'})
-    )
-
-    def clean_identity(self):
-        return self.cleaned_data.get('identity', '').strip()
-'''
-from django import forms
-from django.contrib.auth.forms import AuthenticationForm
-
-class MultiFieldLoginForm(AuthenticationForm):
-    username = forms.CharField()
-    identity = forms.CharField(
-        label="Email, телефон или логин",
-        widget=forms.TextInput(attrs={
-            'placeholder': 'Email, телефон или логин',
-            'autofocus': True,
-            'class': 'form-control'
-        })
-    )
-    password = forms.CharField(
-        label="Пароль",
-        widget=forms.PasswordInput(attrs={
-            'placeholder': 'Пароль',
-            'class': 'form-control'
-        })
-    )

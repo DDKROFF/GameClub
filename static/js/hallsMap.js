@@ -15,14 +15,14 @@
                     { type: 'pc', spotNumber: 4 },
                     { type: 'pc', spotNumber: 5 },
                     { type: 'spacer' },
-                    { type: 'con', spotNumber: 6 }
+                    { type: 'con', spotNumber: 11 }
                 ],
                 [
+                    { type: 'pc', spotNumber: 6 },
                     { type: 'pc', spotNumber: 7 },
                     { type: 'pc', spotNumber: 8 },
                     { type: 'pc', spotNumber: 9 },
                     { type: 'pc', spotNumber: 10 },
-                    { type: 'pc', spotNumber: 11 },
                     { type: 'con', spotNumber: 12 },
                     { type: 'con', spotNumber: 13 }
                 ]
