@@ -1,18 +1,58 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.core.exceptions import ValidationError
 import re
 from .models import CustomUser
 
+# ------------------------------------------------------------
+# Форма входа (с поддержкой username/email/phone)
+# ------------------------------------------------------------
+class LoginForm(forms.Form):
+    identity = forms.CharField(
+        label='Логин / Email / Телефон',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Введите логин, email или телефон',
+            'autofocus': True
+        })
+    )
+    password = forms.CharField(
+        label='Пароль',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Введите пароль'
+        })
+    )
+
+    def clean_identity(self):
+        identity = self.cleaned_data.get('identity')
+        if not identity:
+            raise ValidationError('Это поле обязательно.')
+        return identity.strip()
+
+# ------------------------------------------------------------
+# Форма регистрации (уже есть, но слегка доработаем)
+# ------------------------------------------------------------
 class RegisterForm(UserCreationForm):
-    phone = forms.CharField(label='Телефон', max_length=16)
-    email = forms.EmailField(label='Email')
+    phone = forms.CharField(
+        label='Телефон',
+        max_length=16,
+        widget=forms.TextInput(attrs={'placeholder': '8(XXX)XXX-XX-XX'})
+    )
+    email = forms.EmailField(
+        label='Email',
+        widget=forms.EmailInput(attrs={'placeholder': 'example@mail.com'})
+    )
 
     class Meta:
         model = CustomUser
         fields = ('username', 'phone', 'email', 'password1', 'password2')
         labels = {
-            'username': 'Логин'
+            'username': 'Логин',
+        }
+        widgets = {
+            'username': forms.TextInput(attrs={'placeholder': 'Только латиница и цифры'}),
         }
 
     def clean_username(self):
@@ -25,6 +65,7 @@ class RegisterForm(UserCreationForm):
 
     def clean_phone(self):
         phone = self.cleaned_data.get('phone')
+        # Принимаем формат 8(XXX)XXX-XX-XX
         match = re.fullmatch(r'8\((\d{3})\)(\d{3})-(\d{2})-(\d{2})', phone)
         if not match:
             raise ValidationError('Телефон должен быть в формате 8(XXX)XXX-XX-XX')

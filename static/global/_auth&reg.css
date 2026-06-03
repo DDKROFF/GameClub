@@ -1,126 +1,192 @@
-/* Модальное окно */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(4px);
-    z-index: 1000;
-    justify-content: center;
+/* ========== СТРАНИЦЫ АУТЕНТИФИКАЦИИ ========== */
+.auth-container {
+    min-height: 70vh;
+    display: flex;
     align-items: center;
-}
-.modal-overlay.active {
-    display: flex;
-}
-
-.modal {
-    background: #12161a;
-    border: 1px solid #2c3033;
-    border-radius: 16px;
-    padding: 30px;
-    width: 400px;
-    max-width: 90%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    position: relative;
-    animation: modalIn 0.3s ease;
+    justify-content: center;
+    padding: 60px 20px;
+    background: linear-gradient(145deg, #0a0c0e 0%, #14181c 100%);
 }
 
-@keyframes modalIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
+.auth-card {
+    background: rgba(18, 22, 26, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 32px;
+    border: 1px solid rgba(244, 197, 66, 0.25);
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(244, 197, 66, 0.1) inset;
+    padding: 40px 32px;
+    width: 100%;
+    max-width: 480px;
+    transition: 0.3s;
 }
 
-.modal-close {
-    position: absolute;
-    top: 12px;
-    right: 16px;
-    background: none;
-    border: none;
-    color: #a5b7ca;
+.auth-title {
     font-size: 28px;
-    cursor: pointer;
-    transition: 0.2s;
-}
-.modal-close:hover {
-    color: var(--gold);
-}
-
-.modal-tabs {
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 32px;
+    color: #f0e9db;
     display: flex;
+    align-items: center;
+    justify-content: center;
     gap: 12px;
-    margin-bottom: 25px;
-    border-bottom: 1px solid #262b30;
-    padding-bottom: 12px;
 }
 
-.modal-tab {
-    background: none;
-    border: none;
-    color: #a5b7ca;
-    font-size: 1.1rem;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 8px 0;
-    transition: 0.2s;
-    border-bottom: 2px solid transparent;
-}
-.modal-tab.active {
-    color: var(--gold);
-    border-bottom-color: var(--gold);
+.auth-title i {
+    color: var(--gold, #f4c542);
 }
 
-.modal-form {
-    display: none;
-    flex-direction: column;
-    gap: 18px;
+.auth-form .form-group {
+    margin-bottom: 24px;
 }
-.modal-form.active {
+
+.auth-form label {
     display: flex;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.form-group label {
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
     font-weight: 500;
-    color: #cbdae6;
-    font-size: 0.95rem;
+    margin-bottom: 8px;
+    color: #cbd5e1;
 }
 
-.form-group input {
-    padding: 12px 16px;
-    background: #1a1e23;
-    border: 1px solid #2c3033;
-    border-radius: 8px;
+.auth-form label i {
+    color: var(--gold, #f4c542);
+    width: 20px;
+}
+
+.auth-form input[type="text"],
+.auth-form input[type="email"],
+.auth-form input[type="password"] {
+    width: 100%;
+    padding: 14px 16px;
+    background: rgba(10, 12, 14, 0.8);
+    border: 1px solid #2c2f33;
+    border-radius: 16px;
     color: #e8eef2;
     font-size: 1rem;
     transition: 0.2s;
 }
-.form-group input:focus {
+
+.auth-form input:focus {
     outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(244,197,66,0.15);
+    border-color: var(--gold, #f4c542);
+    box-shadow: 0 0 0 3px rgba(244, 197, 66, 0.2);
 }
 
-.modal-submit {
-    margin-top: 10px;
-    padding: 14px;
-    background: var(--gradient-gold);
-    border: none;
-    border-radius: 8px;
-    color: #0a0c0e;
-    font-weight: 700;
-    font-size: 1.1rem;
+/* Стили для выпадающих списков даты рождения */
+.birth-date-selects {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.birth-date-selects select {
+    flex: 1;
+    padding: 12px 8px;
+    background: rgba(10,12,14,0.8);
+    border: 1px solid #2c2f33;
+    border-radius: 12px;
+    color: #e8eef2;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.birth-date-selects select:focus {
+    outline: none;
+    border-color: var(--gold);
+}
+
+/* Маска телефона – дополнительно */
+.phone-mask {
+    letter-spacing: normal;
+}
+
+.password-wrapper {
+    position: relative;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #8e9aaf;
     cursor: pointer;
     transition: 0.2s;
+    z-index: 2;
 }
-.modal-submit:hover {
-    filter: brightness(1.1);
-    transform: translateY(-1px);
+
+.toggle-password:hover {
+    color: var(--gold, #f4c542);
+}
+
+.form-error {
+    font-size: 12px;
+    color: #ff6b6b;
+    margin-top: 6px;
+    padding-left: 12px;
+    border-left: 2px solid #ff6b6b;
+}
+
+.form-text.text-muted {
+    font-size: 11px;
+    color: #8e9aaf;
+    margin-top: 6px;
+    display: block;
+}
+
+.auth-btn-submit {
+    width: 100%;
+    background: linear-gradient(95deg, #f4c542 0%, #e0a82b 100%);
+    border: none;
+    border-radius: 40px;
+    padding: 14px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #0a0c0e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    margin-top: 16px;
+}
+
+.auth-btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(244, 197, 66, 0.3);
+    background: linear-gradient(95deg, #ffcf5c 0%, #f0b82e 100%);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 14px;
+    color: #a5b7ca;
+}
+
+.auth-footer a {
+    color: var(--gold, #f4c542);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 20px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    background: rgba(255, 107, 107, 0.15);
+    border-left: 4px solid #ff6b6b;
+    color: #ffb8b8;
+}
+
+.alert-success {
+    background: rgba(72, 187, 120, 0.15);
+    border-left-color: #48bb78;
+    color: #c6f6d5;
 }

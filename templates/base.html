@@ -13,9 +13,17 @@
 <header class="header">
     <div class="favicon">
         <div class="logo"><span>G</span>Five • CLUB</div>
-        <button class="auth-btn" id="openAuthModal">
-            <i class="fas fa-user"></i> Авторизоватся
-        </button>
+        {% if user.is_authenticated %}
+            <div class="user-menu">
+                <span class="user-name"><i class="fas fa-user-circle"></i> {{ user.username }}</span>
+                <a href="{% url 'users:logout' %}" class="auth-btn logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+            </div>
+        {% else %}
+            <div class="auth-buttons">
+                <a href="{% url 'users:signin' %}" class="auth-btn"><i class="fas fa-sign-in-alt"></i> Вход</a>
+                <a href="{% url 'users:signup' %}" class="auth-btn register-btn"><i class="fas fa-user-plus"></i> Регистрация</a>
+            </div>
+        {% endif %}
     </div>
 
     <div class="navbar">
