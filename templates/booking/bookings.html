@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Мои бронирования - GFive Club{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-calendar-alt"></i> Мои бронирования</h1>
+        <a href="{% url 'users:profile' %}" class="back-link">← Вернуться в профиль</a>
+    </div>
+    <div class="bookings-list">
+        {% if bookings %}
+            {% for booking in bookings %}
+                <div class="booking-item">
+                    <div class="booking-header">
+                        <strong>ПК №{{ booking.computer_number }}</strong>
+                        <span class="booking-status {{ booking.status }}">{{ booking.get_status_display }}</span>
+                    </div>
+                    <div class="booking-datetime">
+                        <i class="far fa-clock"></i> {{ booking.start_time|date:"d.m.Y H:i" }} – {{ booking.end_time|date:"d.m.Y H:i" }}
+                    </div>
+                    <div class="booking-details">
+                        Тариф: {{ booking.tariff_name }} | Стоимость: {{ booking.total_cost }} ₽
+                    </div>
+                    {% if booking.status == 'active' and booking.start_time > now %}
+                        <a href="{% url 'booking:cancel_booking' booking.id %}" class="cancel-link" onclick="return confirm('Отменить бронирование? Средства вернутся на баланс.')">Отменить бронирование</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>У вас нет активных бронирований.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

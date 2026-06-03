@@ -16,6 +16,7 @@
         {% if user.is_authenticated %}
             <div class="user-menu">
                 <span class="user-name"><i class="fas fa-user-circle"></i> {{ user.username }}</span>
+                <a href="{% url 'users:profile' %}" class="auth-btn"><i class="fas fa-tachometer-alt"></i> Кабинет</a>
                 <a href="{% url 'users:logout' %}" class="auth-btn logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
             </div>
         {% else %}

@@ -1,7 +1,10 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.utils import timezone
 from .forms import LoginForm, RegisterForm
+from booking.models import Transaction, Booking
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -48,3 +51,19 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'Вы вышли из аккаунта.')
     return redirect('main:home')
+
+@login_required
+def profile_view(request):
+    balance = request.user.balance.balance
+    active_bookings = request.user.bookings.filter(
+        status='active',
+        start_time__gt=timezone.now()
+    ).order_by('start_time')
+    recent_transactions = request.user.transactions.all()[:10]
+    context = {
+        'balance': balance,
+        'active_bookings': active_bookings,
+        'recent_transactions': recent_transactions,
+        'now': timezone.now(),
+    }
+    return render(request, 'users/profile.html', context)

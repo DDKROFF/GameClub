@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Личный кабинет - GFive Club{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1><i class="fas fa-user-circle"></i> Личный кабинет</h1>
+        <p class="user-greeting">{{ user.get_full_name|default:user.username }}, добро пожаловать!</p>
+    </div>
+
+    <!-- Баланс -->
+    <div class="profile-card balance-card">
+        <div class="card-icon"><i class="fas fa-wallet"></i></div>
+        <h3>Ваш баланс</h3>
+        <div class="balance-amount">{{ balance }} ₽</div>
+        <a href="{% url 'booking:deposit' %}" class="btn-primary"><i class="fas fa-plus-circle"></i> Пополнить баланс</a>
+    </div>
+
+    <!-- Активные сеансы -->
+    <div class="profile-card bookings-card">
+        <div class="card-header">
+            <i class="fas fa-desktop"></i>
+            <h3>Активные сеансы</h3>
+        </div>
+        {% if active_bookings %}
+            <div class="bookings-grid">
+                {% for booking in active_bookings %}
+                <div class="booking-item">
+                    <div class="booking-pc">ПК №{{ booking.computer_number }}</div>
+                    <div class="booking-time">
+                        <i class="far fa-calendar-alt"></i> {{ booking.start_time|date:"d.m.Y" }}
+                    </div>
+                    <div class="booking-time">
+                        <i class="far fa-clock"></i> {{ booking.start_time|date:"H:i" }} – {{ booking.end_time|date:"H:i" }}
+                    </div>
+                    <div class="booking-tariff">Тариф: {{ booking.tariff_name }}</div>
+                    <div class="booking-price">{{ booking.total_cost }} ₽</div>
+                    <a href="{% url 'booking:cancel_booking' booking.id %}?next={% url 'users:profile' %}"
+                       class="cancel-btn"
+                       onclick="return confirm('Отменить бронирование? Средства вернутся на баланс.')">
+                       Отменить
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-message">Нет активных бронирований. <a href="{% url 'main:hallMap' %}">Забронировать ПК</a></p>
+        {% endif %}
+    </div>
+
+    <!-- Последние операции -->
+    <div class="profile-card transactions-card">
+        <div class="card-header">
+            <i class="fas fa-history"></i>
+            <h3>Последние операции</h3>
+            <a href="{% url 'booking:transactions' %}" class="link-more">Все операции →</a>
+        </div>
+        {% if recent_transactions %}
+            <div class="transactions-list">
+                {% for tx in recent_transactions %}
+                <div class="transaction-row">
+                    <div class="tx-date">{{ tx.created_at|date:"d.m.Y H:i" }}</div>
+                    <div class="tx-type">{{ tx.get_transaction_type_display }}</div>
+                    <div class="tx-amount {% if tx.transaction_type == 'deposit' or tx.transaction_type == 'refund' %}positive{% else %}negative{% endif %}">
+                        {% if tx.transaction_type == 'deposit' or tx.transaction_type == 'refund' %}+{% else %}-{% endif %}{{ tx.amount }} ₽
+                    </div>
+                    <div class="tx-desc">{{ tx.description|default:"—" }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="empty-message">Нет операций. Пополните баланс, чтобы начать.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
