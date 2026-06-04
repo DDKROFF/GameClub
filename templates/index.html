@@ -23,60 +23,54 @@
     <section class="news-section" id="news">
         <div class="news-container">
             <h2 class="section-title">Актуальные новости</h2>
-            <div class="news-list">
+            <div id="news-list-container" class="news-list">
                 {% for news in news_list %}
                     <div class="news-item" data-news-id="{{ news.id }}">
                         <div class="news-header">
                             {% for tag in news.tags.all %}
-                                <span class="news-badge"><i
-                                        class="fas fa-{{ tag.slug|default:'tag' }}"></i> {{ tag.name }}</span>
+                                <span class="news-badge"><i class="fas fa-{{ tag.slug|default:'tag' }}"></i> {{ tag.name }}</span>
                             {% endfor %}
-                            <span class="news-date">
-                            <i class="far fa-calendar-alt"></i> {{ news.publication_date|date:"d E Y" }}
-                        </span>
+                            <span class="news-date"><i class="far fa-calendar-alt"></i> {{ news.publication_date|date:"d E Y" }}</span>
                         </div>
                         <h3 class="news-title">{{ news.title }}</h3>
                         <div class="news-excerpt">{{ news.excerpt }}</div>
                         <div class="news-meta-row">
-                        <span class="views-count">
-                            <i class="far fa-eye"></i> <span>{{ news.stats.views|default:0 }}</span> просмотров
-                        </span>
-                            <span class="like-btn" data-action="like" style="cursor:pointer;">
-                            <i class="far fa-thumbs-up"></i> <span
-                                    class="likes-count">{{ news.stats.likes|default:0 }}</span>
-                        </span>
-                            <span class="dislike-btn" data-action="dislike" style="cursor:pointer;">
-                            <i class="far fa-thumbs-down"></i> <span
-                                    class="dislikes-count">{{ news.stats.dislikes|default:0 }}</span>
-                        </span>
+                            <span class="views-count"><i class="far fa-eye"></i> <span>{{ news.stats.views|default:0 }}</span> просмотров</span>
+                            <span class="like-btn" data-action="like" style="cursor:pointer;"><i class="far fa-thumbs-up"></i> <span class="likes-count">{{ news.stats.likes|default:0 }}</span></span>
+                            <span class="dislike-btn" data-action="dislike" style="cursor:pointer;"><i class="far fa-thumbs-down"></i> <span class="dislikes-count">{{ news.stats.dislikes|default:0 }}</span></span>
                         </div>
                     </div>
                 {% empty %}
                     <p style="color:white; text-align:center;">Новостей пока нет.</p>
                 {% endfor %}
             </div>
+            <!-- Блок с двумя кнопками: Показать ещё и Скрыть -->
+            <div class="news-controls" id="news-controls">
+                <button id="load-more-news" class="load-more-btn">Показать ещё</button>
+                <button id="hide-news" class="hide-news-btn" style="display: none;">Скрыть</button>
+            </div>
         </div>
     </section>
 
     <div class="divider-gray"></div>
 
-    {% include 'includes/tariffs_block.html' %}
+    {% include 'includes/tariffs_block.html' with tariffs=tariffs %}
 
     <div class="divider-gray"></div>
 
     <section class="map-section">
-    <div class="container">
-        <div class="map-container">
-            <div class="map-wrapper">
-                <a href="https://yandex.ru/maps/org/gamer_pro/16131905237/?utm_medium=mapframe&utm_source=maps" class="map-link link-1">Gamer. pro</a>
-                <a href="https://yandex.ru/maps/10988/belorechensk/category/internet_cafe/184105740/?utm_medium=mapframe&utm_source=maps" class="map-link link-2">Интернет-кафе в Белореченске</a>
-                <a href="https://yandex.ru/maps/10988/belorechensk/category/computer_club/97550856506/?utm_medium=mapframe&utm_source=maps" class="map-link link-3">Компьютерный клуб в Белореченске</a>
-                <iframe src="https://yandex.ru/map-widget/v1/?ll=39.874477%2C44.758810&mode=poi&poi%5Bpoint%5D=39.874794%2C44.758822&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D16131905237&z=19"
-                        allowfullscreen="true" width="100%" height="100%"></iframe>
+        <div class="container">
+            <div class="map-container">
+                <div class="map-wrapper">
+                    <a href="https://yandex.ru/maps/org/gamer_pro/16131905237/?utm_medium=mapframe&utm_source=maps" class="map-link link-1">Gamer. pro</a>
+                    <a href="https://yandex.ru/maps/10988/belorechensk/category/internet_cafe/184105740/?utm_medium=mapframe&utm_source=maps" class="map-link link-2">Интернет-кафе в Белореченске</a>
+                    <a href="https://yandex.ru/maps/10988/belorechensk/category/computer_club/97550856506/?utm_medium=mapframe&utm_source=maps" class="map-link link-3">Компьютерный клуб в Белореченске</a>
+                    <iframe src="https://yandex.ru/map-widget/v1/?ll=39.874477%2C44.758810&mode=poi&poi%5Bpoint%5D=39.874794%2C44.758822&poi%5Buri%5D=ymapsbm1%3A%2F%2Forg%3Foid%3D16131905237&z=19"
+                            allowfullscreen="true" width="100%" height="100%"></iframe>
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
     <div class="divider-gray"></div>
     <script src="{% static 'js/index.js' %}"></script>

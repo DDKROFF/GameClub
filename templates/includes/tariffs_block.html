@@ -1,60 +1,39 @@
-<section class="tariff-section" id="tariffs">
-
-        <div class="tariffs indent">
-            <h2 class="section-title" id="tariffs">Наши тарифы</h2>
-            <ul class="tariff__list">
-                <li class="tariff__card" id="card__one">
-                    <div class="background__card">
-                        <p class="background__text">Ho
-                            Half-hourHo Half-hour Half-hourHo Half-hourHo Half-hourHoHalf-hour</p>
+{% load static %}
+<section class="cards-section">
+    <div class="container">
+        <h2 class="section-title-glow">
+            <i class="fas fa-bolt"></i> Игровые тарифы
+        </h2>
+        <div class="cards-grid">
+            {% for tariff in tariffs %}
+                <div class="glass-card" data-tariff-id="{{ tariff.id }}">
+                    <div class="card-icon">
+                        {% if tariff.device_type == 'computer' %}
+                            <i class="fas fa-desktop"></i>
+                        {% elif tariff.device_type == 'console' %}
+                            <i class="fas fa-gamepad"></i>
+                        {% else %}
+                            <i class="fas fa-microchip"></i>
+                        {% endif %}
                     </div>
-                    <div class="tarrif__content" id="tarrif__text1">
-                        <p class="tariff__title">Тариф: Thirty</p>
-                        <p class="play__time">Игровое время</p>
-                        <P class="play__hours">30 Мин</P>
-                        <p class="tariff__subtitle">Для того чтобы доиграть катку</p>
-                        <p class="play__price">Цена: 30руб</p>
+                    <span class="card-badge">{{ tariff.get_device_type_display }}</span>
+                    <h3 class="card-title">{{ tariff.name }}</h3>
+                    <p class="card-desc">{{ tariff.description|default:"Максимальная производительность и комфорт" }}</p>
+                    <div class="card-price">
+                        {% if tariff.tariff_type == 'hourly' %}
+                            {{ tariff.price }} ₽/час
+                        {% else %}
+                            {% if tariff.fixed_duration_hours < 1 %}
+                                {{ tariff.fixed_duration_hours|floatformat:0 }} мин — {{ tariff.price }} ₽
+                            {% else %}
+                                {{ tariff.fixed_duration_hours|floatformat:0 }} ч — {{ tariff.price }} ₽
+                            {% endif %}
+                        {% endif %}
                     </div>
-                </li>
-                <li class="tariff__card" id="card__two">
-                    <div class="background__card">
-                        <p class="background__text">Ho
-                            Hour Hour H rrrur Hour H our Hour Hour Hour Hou Hour Hour Hour</p>
-                    </div>
-                    <div class="tarrif__content" id="tarrif__text2">
-                        <p class="tariff__title">Тариф: Hour</p>
-                        <p class="play__time">Игровое время</p>
-                        <P class="play__hours">1 час</P>
-                        <p class="tariff__subtitle">Популярный тариф для того чтобы немного поиграть</p>
-                        <p class="play__price">Цена: 60руб</p>
-                    </div>
-                </li>
-                <li class="tariff__card" id="card__three">
-                    <div class="background__card">
-                        <p class="background__text">
-                            Day DayDay DayDay Day Day DayDay Day Day DayDay Da Day Dayy ay DayDay Da Day Day</p>
-                    </div>
-                    <div class="tarrif__content" id="tarrif__text3">
-                        <p class="tariff__title">Тариф: Day</p>
-                        <p class="play__time">Игровое время</p>
-                        <P class="play__hours">8 часов</P>
-                        <p class="tariff__subtitle">Играйте днем или вечером в свое удовольствие</p>
-                        <p class="play__price">Цена: 380руб</p>
-                    </div>
-                </li>
-                <li class="tariff__card" id="card__four">
-                    <div class="background__card">
-                        <p class="background__text">Night Night Night NightNight Night Night Night Night Night Night
-                            Night Nigh</p>
-                    </div>
-                    <div class="tarrif__content" id="tarrif__text4">
-                        <p class="tariff__title">Тариф: Night</p>
-                        <p class="play__time">Игровое время</p>
-                        <P class="play__hours">8 часов</P>
-                        <p class="tariff__subtitle">Играйте всю ночь от 22:00 до 6:00</p>
-                        <p class="play__price">Цена: 320руб</p>
-                    </div>
-                </li>
-            </ul>
+                </div>
+            {% empty %}
+                <p class="no-data">✨ Скоро появятся новые тарифы ✨</p>
+            {% endfor %}
         </div>
-    </section>
+    </div>
+</section>

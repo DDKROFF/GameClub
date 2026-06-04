@@ -205,7 +205,53 @@
     color: var(--gold);
 }
 
-/* ========== КАРТА ========== */
+/* ========== УПРАВЛЕНИЕ НОВОСТЯМИ ========== */
+.news-controls {
+    text-align: center;
+    margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+}
+
+/* Кнопка "Показать ещё" – малозаметная, как приписка */
+.load-more-btn {
+    background: none;
+    border: none;
+    color: #aaafb8;
+    font-size: 0.9rem;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 6px 14px;
+    transition: color 0.2s;
+    border-bottom: 1px dashed #5a6270;
+}
+
+.load-more-btn:hover {
+    color: var(--gold, #d73d04);
+    border-bottom-color: var(--gold, #d73d04);
+}
+
+/* Кнопка "Скрыть" – появляется справа, чуть заметнее */
+.hide-news-btn {
+    background: none;
+    border: 1px solid #5a6270;
+    color: #cddae9;
+    font-size: 0.85rem;
+    font-weight: 400;
+    cursor: pointer;
+    padding: 6px 18px;
+    border-radius: 30px;
+    transition: all 0.2s;
+}
+
+.hide-news-btn:hover {
+    background: rgba(215, 61, 4, 0.15);
+    border-color: var(--gold, #d73d04);
+    color: var(--gold, #d73d04);
+}
+
 .map-section {
     padding: 60px 0 80px;
     background: rgba(12, 15, 18, 0.85);
