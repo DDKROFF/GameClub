@@ -13,7 +13,7 @@ class Tariff(models.Model):
 
     name = models.CharField(max_length=100, unique=True, verbose_name='Название тарифа')
     tariff_type = models.CharField(max_length=10, choices=TARIFF_TYPES, default='hourly', verbose_name='Тип тарифа')
-    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Цена (руб)')
+    price = models.DecimalField(max_digits=10, decimal_places=1, verbose_name='Цена (руб)')
     fixed_duration_hours = models.DecimalField(
         max_digits=5, decimal_places=2, null=True, blank=True,
         verbose_name='Длительность (минуты) для фиксированного тарифа'
@@ -49,22 +49,22 @@ class Tariff(models.Model):
         if self.tariff_type == 'fixed' and self.fixed_duration_hours <= 0:
             raise ValidationError('Длительность должна быть положительной')
 
-"""
-
-from django.db import models
-from devices.models import Device
-from tarifs.models import Tariff
-
-class Booking(models.Model):
-    device = models.ForeignKey(Device, on_delete=models.CASCADE, verbose_name='Устройство')
-    tariff = models.ForeignKey(Tariff, on_delete=models.SET_NULL, null=True, verbose_name='Тариф')
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
-    total_price = models.DecimalField(max_digits=10, decimal_places=2)
-    Вариант для реализации сеанса или бронирования
-    def clean(self):
-    if not self.tariff.is_active:
-        raise ValidationError('Тариф не активен')
-    if self.tariff.device_type != 'all' and self.tariff.device_type != self.device.device_type:
-        raise ValidationError('Тариф не подходит для этого типа устройства')
-"""
+    def duration_display(self):
+        if self.tariff_type != 'fixed' or not self.fixed_duration_hours:
+            return ''
+        total_minutes = int(self.fixed_duration_hours)
+        if total_minutes < 60:
+            return f'{total_minutes} мин'
+        hours = total_minutes // 60
+        mins = total_minutes % 60
+        if 11 <= hours % 100 <= 14:
+            hour_word = 'часов'
+        elif hours % 10 == 1:
+            hour_word = 'час'
+        elif 2 <= hours % 10 <= 4:
+            hour_word = 'часа'
+        else:
+            hour_word = 'часов'
+        if mins:
+            return f'{hours} {hour_word} {mins} мин'
+        return f'{hours} {hour_word}'

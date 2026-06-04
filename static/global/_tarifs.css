@@ -1,191 +1,222 @@
-/* ========== СЕКЦИЯ С КАРТОЧКАМИ (УНИВЕРСАЛЬНЫЙ СТИЛЬ) ========== */
-.cards-section {
-    padding: 80px 24px;
-    background: radial-gradient(circle at 20% 40%, rgba(10, 15, 25, 0.95), rgba(2, 6, 12, 0.98));
-}
-
-.container {
-    max-width: 1300px;
+/* ========== ТАРИФЫ (пропорциональное уменьшение) ========== */
+.tariff-section {
     margin: 0 auto;
+    max-width: 1250px;
+    padding: 70px 0 80px;
+    background: rgba(10, 12, 14, 0.65);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid rgba(47, 53, 59, 0.5);
 }
 
-/* Заголовок с неоновым свечением */
-.section-title-glow {
-    text-align: center;
-    font-size: 3rem;
-    font-weight: 800;
-    margin-bottom: 3rem;
-    background: linear-gradient(135deg, #9bc0ff, #c084fc, #f0a0ff);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    text-shadow: 0 0 15px rgba(155, 192, 255, 0.4);
-    letter-spacing: -0.02em;
-}
-
-.section-title-glow i {
-    margin-right: 12px;
-    background: none;
-    -webkit-text-fill-color: initial;
-    color: #c084fc;
-}
-
-/* Сетка карточек */
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 32px;
-}
-
-/* Стеклянная карточка */
-.glass-card {
-    position: relative;
-    background: rgba(18, 24, 40, 0.55);
-    backdrop-filter: blur(12px);
-    border-radius: 2rem;
-    padding: 1.8rem 1.8rem 2rem;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    overflow: hidden;
+.tariff__list {
+    --card-width: 250px;                 /* базовая ширина карточки */
     display: flex;
-    flex-direction: column;
-    cursor: pointer;
+    flex-wrap: wrap;
+    gap: calc(var(--card-width) * 0.136); /* 34/250 = 0.136 */
+    justify-content: center;
+    padding: 10px 0;
 }
 
-/* Градиентная рамка при наведении */
-.glass-card::before {
+.tariff__card {
+    position: relative;
+    width: var(--card-width);
+    height: calc(var(--card-width) * 1.62);  /* 405/250 = 1.62 */
+    border-radius: calc(var(--card-width) * 0.18); /* 45/250 = 0.18 */
+    transition: 0.3s ease;
+    flex-shrink: 0;
+}
+
+.tariff__card:hover {
+    transform: scale(1.06);
+}
+
+/* ========== ЗОЛОТИСТЫЕ ГРАДИЕНТЫ (тонкая полоса) ========== */
+#card__one {
+    background: linear-gradient(30deg, #1a1410 0%, #d4a017 45%, #f0c75e 55%, #1a1410 100%);
+}
+#card__one::before {
+    background: linear-gradient(133deg, #1a1410 0%, #d4a017 45%, #f0c75e 55%, #1a1410 100%);
+}
+#card__one .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #e5b83c;
+}
+
+#card__two {
+    background: linear-gradient(30deg, #181410 0%, #bd8c1a 45%, #e0b03a 55%, #181410 100%);
+}
+#card__two::before {
+    background: linear-gradient(133deg, #181410 0%, #bd8c1a 45%, #e0b03a 55%, #181410 100%);
+}
+#card__two .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #d4a32e;
+}
+
+#card__three {
+    background: linear-gradient(40deg, #16110e 0%, #c9961e 45%, #eabb42 55%, #16110e 100%);
+}
+#card__three::before {
+    background: linear-gradient(227deg, #16110e 0%, #c9961e 45%, #eabb42 55%, #16110e 100%);
+}
+#card__three .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #dbaa33;
+}
+
+#card__four {
+    background: linear-gradient(35deg, #121416 0%, #a6841c 45%, #d9a83a 55%, #121416 100%);
+}
+#card__four::before {
+    background: linear-gradient(211deg, #121416 0%, #a6841c 45%, #d9a83a 55%, #121416 100%);
+}
+#card__four .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #c89f30;
+}
+
+#card__five {
+    background: linear-gradient(45deg, #1a1512 0%, #b78b1f 45%, #e6b54b 55%, #1a1512 100%);
+}
+#card__five::before {
+    background: linear-gradient(320deg, #1a1512 0%, #b78b1f 45%, #e6b54b 55%, #1a1512 100%);
+}
+#card__five .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #dfb346;
+}
+
+#card__six {
+    background: linear-gradient(135deg, #161110 0%, #ad7a19 45%, #d9a534 55%, #161110 100%);
+}
+#card__six::before {
+    background: linear-gradient(45deg, #161110 0%, #ad7a19 45%, #d9a534 55%, #161110 100%);
+}
+#card__six .tarrif__content:hover {
+    -webkit-text-stroke: 0.5px #d0992b;
+}
+
+/* Псевдоэлементы (анимация поворота) */
+#card__one::before,
+#card__two::before,
+#card__three::before,
+#card__four::before,
+#card__five::before,
+#card__six::before {
     content: '';
     position: absolute;
-    inset: 0;
-    border-radius: 2rem;
-    padding: 2px;
-    background: linear-gradient(145deg, rgba(100, 150, 255, 0.6), rgba(200, 100, 255, 0.6));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
     opacity: 0;
-    transition: opacity 0.3s;
-    pointer-events: none;
+    transition: 1s;
+    z-index: 0;
 }
 
-.glass-card:hover::before {
+#card__one:hover::before,
+#card__two:hover::before,
+#card__three:hover::before,
+#card__four:hover::before,
+#card__five:hover::before,
+#card__six:hover::before {
     opacity: 1;
 }
 
-.glass-card:hover {
-    transform: translateY(-8px) scale(1.01);
-    background: rgba(28, 36, 58, 0.8);
-    box-shadow: 0 25px 35px -15px rgba(0, 0, 0, 0.6);
-    border-color: rgba(150, 180, 255, 0.2);
-}
-
-/* Иконка */
-.card-icon {
-    font-size: 3rem;
-    margin-bottom: 1.2rem;
-    background: linear-gradient(145deg, #aaccff, #d58eff);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    width: fit-content;
-    transition: transform 0.2s;
-}
-
-.glass-card:hover .card-icon {
-    transform: scale(1.05);
-}
-
-/* Бейдж (тип устройства) */
-.card-badge {
-    font-size: 0.7rem;
-    font-weight: 600;
-    background: rgba(192, 132, 252, 0.2);
-    backdrop-filter: blur(4px);
-    padding: 0.3rem 1rem;
-    border-radius: 40px;
-    display: inline-block;
-    margin-bottom: 1rem;
-    color: #cddcff;
-    width: fit-content;
-    border: 1px solid rgba(192, 132, 252, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Заголовок карточки */
-.card-title {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 0.75rem;
-    background: linear-gradient(135deg, #f0f4ff, #c8dbff);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-}
-
-/* Описание */
-.card-desc {
-    color: #b2c2e0;
-    font-size: 0.95rem;
-    line-height: 1.45;
-    margin-bottom: 1.8rem;
-    flex-grow: 1;
-}
-
-/* Цена (привлекательный блок) */
-.card-price {
-    font-size: 1.6rem;
-    font-weight: 800;
-    background: linear-gradient(145deg, #c084fc, #a055e0);
-    background-clip: text;
-    -webkit-background-clip: text;
-    color: transparent;
-    display: inline-block;
-    padding: 0.3rem 1rem 0.3rem 0;
-    border-radius: 60px;
-    width: fit-content;
-    letter-spacing: -0.3px;
+/* ---------- Фоновая подложка ---------- */
+.background__card {
+    top: calc(var(--card-width) * 0.024);          /* 6/250 = 0.024 */
+    right: calc(var(--card-width) * -0.024);
     position: relative;
+    background-color: #0A0F1B;
+    border-radius: calc(var(--card-width) * 0.156); /* 39/250 = 0.156 */
+    width: calc(var(--card-width) * 0.952);         /* 238/250 = 0.952 */
+    height: calc(var(--card-width) * 1.572);        /* 393/250 = 1.572 */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
 }
 
-/* Анимация пульсации для привлечения внимания */
-@keyframes softPulse {
-    0% { text-shadow: 0 0 0px rgba(192,132,252,0); }
-    50% { text-shadow: 0 0 12px rgba(192,132,252,0.5); }
-    100% { text-shadow: 0 0 0px rgba(192,132,252,0); }
-}
-.card-price {
-    animation: softPulse 2.5s infinite ease-in-out;
+.background__text {
+    bottom: calc(var(--card-width) * 0.436);       /* 109/250 = 0.436 */
+    left: -24%;
+    position: relative;
+    font-weight: 700;
+    font-size: calc(var(--card-width) * 0.192);    /* 48/250 = 0.192 */
+    color: rgba(114, 82, 255, 0.08);
+    line-height: 1.2;
+    letter-spacing: 0.25em;
+    transform: rotate(330deg);
+    z-index: 2;
+    width: calc(var(--card-width) * 2.04);         /* 510/250 = 2.04 */
+    pointer-events: none;
+    user-select: none;
 }
 
-/* Сообщение при отсутствии данных */
-.no-data {
+/* ---------- Контент тарифа ---------- */
+.tarrif__content {
+    display: flex;
+    position: relative;
+    left: calc(var(--card-width) * 0.024);          /* 6/250 */
+    bottom: calc(var(--card-width) * 1.544);        /* 386/250 = 1.544 */
+    max-width: calc(var(--card-width) * 0.952);
+    height: calc(var(--card-width) * 1.572);
+    flex-direction: column;
+    z-index: 3;
+}
+
+.tariff__title {
+    height: calc(var(--card-width) * 0.4);         /* 100/250 = 0.4 */
+    margin: calc(var(--card-width) * 0.052) auto 0 calc(var(--card-width) * 0.064); /* 13/250, 16/250 */
+    font-weight: 700;
+    font-size: calc(var(--card-width) * 0.116);    /* 29/250 */
+}
+
+.play__time {
+    margin-top: calc(var(--card-width) * 0.136);   /* 34/250 */
     text-align: center;
-    color: #a0b3d9;
-    font-size: 1.3rem;
-    grid-column: 1 / -1;
-    padding: 3rem;
+    font-weight: 500;
+    font-size: calc(var(--card-width) * 0.068);    /* 17/250 */
 }
 
-/* Адаптив */
-@media (max-width: 768px) {
-    .cards-section {
-        padding: 50px 16px;
+.play__hours {
+    text-align: center;
+    font-weight: 700;
+    font-size: calc(var(--card-width) * 0.1);      /* 25/250 = 0.1 */
+}
+
+.tariff__subtitle {
+    max-width: calc(var(--card-width) * 0.56);     /* 140/250 */
+    font-size: calc(var(--card-width) * 0.056);    /* 14/250 */
+    margin: calc(var(--card-width) * 0.064) auto 0 auto; /* 16/250 */
+    text-align: center;
+}
+
+.play__price {
+    margin: auto auto calc(var(--card-width) * 0.056) calc(var(--card-width) * 0.056); /* 14/250 */
+    font-weight: 600;
+    font-size: calc(var(--card-width) * 0.112);    /* 28/250 */
+}
+
+/* ========== Адаптивность ========== */
+@media (max-width: 1400px) {
+    .tariff__list {
+        --card-width: 215px;   /* новое значение, все размеры пересчитаются */
     }
-    .section-title-glow {
-        font-size: 2.2rem;
+}
+
+@media (max-width: 1024px) {
+    .tariff__list {
+        --card-width: 180px;
     }
-    .cards-grid {
-        gap: 20px;
+}
+
+@media (max-width: 550px) {
+    .tariff__list {
+        --card-width: 140px;
     }
-    .glass-card {
-        padding: 1.4rem;
-    }
-    .card-title {
-        font-size: 1.4rem;
-    }
-    .card-price {
-        font-size: 1.3rem;
+}
+
+@media (max-width: 320px) {
+    .tariff__list {
+        --card-width: 120px;   /* 2 × 120px = 240px + gap(~16px) = 256px – влезает с отступами */
     }
 }

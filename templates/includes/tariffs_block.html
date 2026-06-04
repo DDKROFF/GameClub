@@ -1,39 +1,39 @@
 {% load static %}
-<section class="cards-section">
-    <div class="container">
-        <h2 class="section-title-glow">
-            <i class="fas fa-bolt"></i> Игровые тарифы
-        </h2>
-        <div class="cards-grid">
+<section class="tariff-section" id="tariffs">
+    <div class="tariffs indent">
+        <h2 class="section-title">Наши тарифы</h2>
+        <ul class="tariff__list">
             {% for tariff in tariffs %}
-                <div class="glass-card" data-tariff-id="{{ tariff.id }}">
-                    <div class="card-icon">
-                        {% if tariff.device_type == 'computer' %}
-                            <i class="fas fa-desktop"></i>
-                        {% elif tariff.device_type == 'console' %}
-                            <i class="fas fa-gamepad"></i>
-                        {% else %}
-                            <i class="fas fa-microchip"></i>
-                        {% endif %}
-                    </div>
-                    <span class="card-badge">{{ tariff.get_device_type_display }}</span>
-                    <h3 class="card-title">{{ tariff.name }}</h3>
-                    <p class="card-desc">{{ tariff.description|default:"Максимальная производительность и комфорт" }}</p>
-                    <div class="card-price">
-                        {% if tariff.tariff_type == 'hourly' %}
-                            {{ tariff.price }} ₽/час
-                        {% else %}
-                            {% if tariff.fixed_duration_hours < 1 %}
-                                {{ tariff.fixed_duration_hours|floatformat:0 }} мин — {{ tariff.price }} ₽
-                            {% else %}
-                                {{ tariff.fixed_duration_hours|floatformat:0 }} ч — {{ tariff.price }} ₽
-                            {% endif %}
-                        {% endif %}
-                    </div>
+            <li class="tariff__card" id="{% cycle 'card__one' 'card__two' 'card__three' 'card__four' 'card__five' 'card__six' %}">
+                <div class="background__card">
+                    <p class="background__text">GFive GFive    GFive GFive   GFive GFive GFi ve GFive GFive  GFive GFive</p>
                 </div>
-            {% empty %}
-                <p class="no-data">✨ Скоро появятся новые тарифы ✨</p>
+                <div class="tarrif__content">
+                    <p class="tariff__title">Тариф: {{ tariff.name }}</p>
+                    <p class="play__time">
+                        {% if tariff.tariff_type == 'fixed' %}Игровое время{% else %}Цена за минуту{% endif %}
+                    </p>
+                    <p class="play__hours">
+                        {% if tariff.tariff_type == 'fixed' %}
+                            {{ tariff.duration_display }}
+                        {% else %}
+                            {{ tariff.price }}₽/мин
+                        {% endif %}
+                    </p>
+                    <p class="tariff__subtitle">
+                        {{ tariff.description|default:"Выгодный тариф" }}
+                    </p>
+                    <p class="play__price">
+                        {% if tariff.tariff_type == 'fixed' %}
+                            {{ tariff.price }} руб
+                        {% else %}
+                            {{ tariff.price }} руб / мин
+                        {% endif %}
+                    </p>
+                </div>
+            </li>
             {% endfor %}
-        </div>
+        </ul>
     </div>
 </section>
+<script src="{% static 'js/tariffs.js' %}"></script>
