@@ -275,13 +275,55 @@
         }
         specsTable.innerHTML = tableHTML;
 
-        // Передача ID для формы бронирования
+        // Передача ID для формы бронирования / сессии
         const dbId = info.id || info.deviceId;
+        const reserveBtn = document.getElementById('reserveBtn');
+        const startBtn = document.getElementById('startBtn');
+        const modalBody = document.getElementById('modalBodyContent');
+
         if (dbId) {
-            bookBtn.href = `/bookings/create/?device_id=${dbId}`;
-            bookBtn.style.display = 'block';
+            reserveBtn.style.display = 'inline-block';
+            startBtn.style.display = 'inline-block';
+            reserveBtn.dataset.deviceId = dbId;
+            startBtn.dataset.deviceId = dbId;
+            // remove previous handlers by cloning
+            reserveBtn.replaceWith(reserveBtn.cloneNode(true));
+            startBtn.replaceWith(startBtn.cloneNode(true));
         } else {
-            bookBtn.style.display = 'none';
+            reserveBtn.style.display = 'none';
+            startBtn.style.display = 'none';
+        }
+
+        // attach listeners
+        const newReserveBtn = document.getElementById('reserveBtn');
+        const newStartBtn = document.getElementById('startBtn');
+        if (newReserveBtn) {
+            newReserveBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!newReserveBtn.dataset.deviceId) return;
+                modalBody.innerHTML = '<p>Загрузка формы...</p>';
+                try {
+                    const res = await fetch(`/booking/reserve-form/?device_id=${newReserveBtn.dataset.deviceId}`);
+                    const html = await res.text();
+                    modalBody.innerHTML = html;
+                } catch (err) {
+                    modalBody.innerHTML = '<p>Ошибка загрузки формы.</p>';
+                }
+            });
+        }
+        if (newStartBtn) {
+            newStartBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                if (!newStartBtn.dataset.deviceId) return;
+                modalBody.innerHTML = '<p>Загрузка формы...</p>';
+                try {
+                    const res = await fetch(`/booking/session-form/?device_id=${newStartBtn.dataset.deviceId}`);
+                    const html = await res.text();
+                    modalBody.innerHTML = html;
+                } catch (err) {
+                    modalBody.innerHTML = '<p>Ошибка загрузки формы.</p>';
+                }
+            });
         }
 
         modal.classList.add('active');

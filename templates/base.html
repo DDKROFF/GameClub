@@ -11,13 +11,50 @@
 </head>
 <body>
 <header class="header">
+
+    <input type="checkbox" id="menu-toggle" class="menu-toggle-checkbox">
+    <label for="menu-toggle" class="burger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </label>
+
+    <!-- Мобильное меню (скрыто на больших экранах) -->
+    <div class="mobile-menu">
+        <nav class="mobile-nav">
+            <a href="{% url 'main:home' %}" class="mobile-nav-link"><i class="fas fa-home"></i> Главная</a>
+            <a href="{% url 'main:home' %}#news" class="mobile-nav-link"><i class="fas fa-newspaper"></i> Новости</a>
+            <a href="{% url 'main:home' %}#tariffs" class="mobile-nav-link"><i class="fas fa-trophy"></i> Тарифы</a>
+            <a href="{% url 'main:hallMap' %}" class="mobile-nav-link"><i class="fas fa-gamepad"></i> Карта клуба</a>
+            <a href="#" class="mobile-nav-link"><i class="fas fa-address-card"></i> Контакты</a>
+            <a href="{% url 'news:calendar' %}" class="mobile-nav-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
+        </nav>
+        <div class="mobile-auth">
+            {% if user.is_authenticated %}
+                <a href="{% url 'users:profile' %}" class="mobile-auth-btn"><i class="fas fa-id-card-clip"></i> Кабинет</a>
+                <a href="{% url 'users:logout' %}" class="mobile-auth-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+            {% else %}
+                <a href="{% url 'users:signin' %}" class="mobile-auth-btn"><i class="fas fa-sign-in-alt"></i> Вход</a>
+                <a href="{% url 'users:signup' %}" class="mobile-auth-btn register-btn"><i class="fas fa-user-plus"></i> Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+
     <div class="favicon">
         <div class="logo"><span>G</span>Five • CLUB</div>
         {% if user.is_authenticated %}
-            <div class="user-menu">
-                <span class="user-name"><i class="fas fa-user-circle"></i> {{ user.username }}</span>
-                <a href="{% url 'users:profile' %}" class="auth-btn"><i class="fas fa-tachometer-alt"></i> Кабинет</a>
-                <a href="{% url 'users:logout' %}" class="auth-btn logout-btn"><i class="fas fa-sign-out-alt"></i> Выйти</a>
+            <div class="user-dropdown">
+                <button class="user-icon-btn" aria-label="Меню пользователя">
+                    <i class="fas fa-user-circle"></i>
+                </button>
+                <div class="dropdown-menu">
+                    <a href="{% url 'users:profile' %}" class="dropdown-item">
+                        <i class="fas fa-id-card"></i> Личный кабинет
+                    </a>
+                    <a href="{% url 'users:logout' %}" class="dropdown-item logout">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </a>
+                </div>
             </div>
         {% else %}
             <div class="auth-buttons">
@@ -34,7 +71,7 @@
             <a href="{% url 'main:home' %}#tariffs" class="tab-link"><i class="fas fa-trophy"></i> Тарифы</a>
             <a href="{% url 'main:hallMap' %}" class="tab-link"><i class="fas fa-gamepad"></i> Карта клуба</a>
             <a href="#" class="tab-link"><i class="fas fa-address-card"></i> Контакты</a>
-            <a href="{% url 'main:home' %}#contacts" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
+            <a href="{% url 'news:calendar' %}" class="tab-link"><i class="fas fa-calendar-alt"></i> Расписание</a>
         </div>
     </div>
 </header>

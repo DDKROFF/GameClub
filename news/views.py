@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
+
 from .models import News, NewsStats
 
 def news_list(request):
@@ -51,3 +53,6 @@ def news_view(request, news_id):
     stats.save(update_fields=['views'])
     request.session[session_key] = True
     return JsonResponse({'success': True, 'views': stats.views})
+
+class CalendarView(TemplateView):
+    template_name = 'news/calendar.html'

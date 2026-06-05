@@ -1,11 +1,9 @@
 from django.urls import path
 from . import views
 
-app_name = 'booking'
+app_name = 'booking' # Убедись, что это имя совпадает с тем, что в шаблоне {% url 'booking:device_action' %}
 
 urlpatterns = [
-    path('deposit/', views.deposit_view, name='deposit'),
-    path('transactions/', views.transaction_history, name='transactions'),
-    path('bookings/', views.active_bookings, name='bookings'),
-    path('cancel-booking/<int:booking_id>/', views.cancel_booking, name='cancel_booking'),
+    path('session-form/', views.session_form_page, name='session_form'),
+    path('device-action/', views.device_action, name='device_action'),
 ]

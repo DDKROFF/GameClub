@@ -7,4 +7,5 @@ urlpatterns = [
     path('<int:news_id>/like/', views.news_like, name='like'),
     path('<int:news_id>/dislike/', views.news_dislike, name='dislike'),
     path('<int:news_id>/view/', views.news_view, name='view'),
+    path('calendar', views.CalendarView.as_view(), name='calendar'),
 ]

@@ -252,10 +252,6 @@
     color: var(--gold, #d73d04);
 }
 
-.map-section {
-    margin: 60px 0 80px;
-}
-
 .map-container {
     width: 100%;
     height: 450px; /* Можете изменить высоту карты здесь (было 380px) */
@@ -302,7 +298,10 @@
         min-height: 60vh;
     }
     .hero-content {
-        padding-left: 60px;
+        padding-left: 32px;
+    }
+    .hero-text {
+        max-width: 500px;
     }
     .hero-text h1 {
         font-size: 42px;
@@ -329,6 +328,25 @@
     }
 }
 
+@media (max-width: 768px) {
+    .hero-text {
+        max-width: 370px;
+    }
+    .hero-text h1 {
+        font-size: 32px;
+    }
+    .hero-text p {
+        font-size: 15px;
+    }
+    .ibtn {
+        padding: 9px 28px;
+        font-weight: 600;
+        font-size: 14px;
+        border-radius: 40px;
+        box-shadow: 0 10px 22px rgba(244, 197, 66, 0.3);
+        transition: 0.2s;
+    }
+}
 /* Мобильные устройства (до 550px) */
 @media (max-width: 550px) {
     .hero {
@@ -346,7 +364,9 @@
     .hero-text h1 {
         font-size: 32px;
         margin-bottom: 16px;
-        background: linear-gradient(to right, #ffffff, #cccccc);
+        background: #ffffff;
+        -webkit-text-stroke: 1px;
+        -webkit-text-stroke-color: #4b4b4b;
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
@@ -360,12 +380,14 @@
     .hero-text p {
         font-size: 0.9rem;
         color: #ffffff;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         margin-bottom: 24px;
+        -webkit-text-stroke: 0.2px;
+        -webkit-text-stroke-color: #ffffff;
+        text-shadow: 0 2px 4px rgb(0 0 0);
     }
     .ibtn {
-        padding: 12px 30px;
-        font-size: 0.9rem;
+        padding: 7px 23px;
+        font-size: 13px;
     }
 
     .news-section {
@@ -379,9 +401,7 @@
         padding: 20px 16px;
     }
     .news-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
+        display: flex;
     }
     .news-title {
         font-size: 20px;
@@ -390,7 +410,7 @@
         font-size: 0.9rem;
     }
     .news-meta-row {
-        flex-direction: column;
+        display: flex;
         gap: 8px;
     }
     .news-controls {

@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views
+
 from devices import views as devices
+from . import views
 
 app_name = 'main'
 

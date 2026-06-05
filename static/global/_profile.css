@@ -116,6 +116,9 @@
     background: #ff6b6b;
     color: #fff;
 }
+.form-control {
+    color: white;
+}
 .transactions-list {
     display: flex;
     flex-direction: column;

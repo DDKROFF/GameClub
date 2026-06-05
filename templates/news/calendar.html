@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Календарь новостей — GFive Club{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{% static 'pages/_calendar.css' %}">
+    <div class="calendar-page">
+        <!-- Hero-секция календаря -->
+        <div class="hero calendar-hero" style="background-image: url('{% static 'images/background.png' %}');">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Календарь <span class="gold-accent">новостей</span></h1>
+                    <p>Отслеживайте важные события и обновления клуба</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Основной блок с календарём -->
+        <div class="news-section" style="background: rgba(10,12,14,0.85); backdrop-filter: blur(6px);">
+            <div class="news-container">
+                <div class="calendar-wrapper">
+                    <!-- Навигация по месяцам -->
+                    <div class="calendar-nav">
+                        <a href="?year={{ prev_year }}&month={{ prev_month }}{% if selected_date %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}" class="cal-nav-btn">
+                            <i class="fas fa-chevron-left"></i> {{ prev_month|stringformat:"02d" }}.{{ prev_year }}
+                        </a>
+                        <h3>{{ month_name }} {{ current_year }}</h3>
+                        <a href="?year={{ next_year }}&month={{ next_month }}{% if selected_date %}&date={{ selected_date|date:'Y-m-d' }}{% endif %}" class="cal-nav-btn">
+                            {{ next_month|stringformat:"02d" }}.{{ next_year }} <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+
+                    <!-- Сетка календаря -->
+                    <div class="calendar-grid">
+                        <div class="calendar-weekdays">
+                            {% for wd in weekdays %}
+                                <div class="cal-weekday">{{ wd }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="calendar-dates">
+                            {% for week in calendar %}
+                                {% for day in week %}
+                                    {% if day == 0 %}
+                                        <div class="cal-day empty"></div>
+                                    {% else %}
+                                        {% with date_str=current_year|stringformat:"04d"|add:"-"|add:current_month|stringformat:"02d"|add:"-"|add:day|stringformat:"02d" %}
+                                            {% if date_str in news_dates_set %}
+                                                <div class="cal-day has-news" data-date="{{ date_str }}">
+                                                    <span class="day-num">{{ day }}</span>
+                                                    <span class="news-dot"></span>
+                                                </div>
+                                            {% else %}
+                                                <div class="cal-day" data-date="{{ date_str }}">
+                                                    <span class="day-num">{{ day }}</span>
+                                                </div>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Блок с новостями за выбранную дату -->
+                    <div class="selected-news-block">
+                        {% if selected_date %}
+                            <h4><i class="fas fa-calendar-day"></i> Новости за {{ selected_date|date:"d E Y" }}</h4>
+                            {% if news_for_date %}
+                                <div class="news-list compact">
+                                    {% for news in news_for_date %}
+                                        <div class="news-item">
+                                            <div class="news-header">
+                                                <span class="news-badge"><i class="far fa-newspaper"></i> Новость</span>
+                                                <span class="news-date"><i class="far fa-clock"></i> {{ news.publication_date|date:"d.m.Y H:i" }}</span>
+                                            </div>
+                                            <h5 class="news-title" style="font-size: 1.5rem;"><a href="#">{{ news.title }}</a></h5>
+                                            <div class="news-excerpt">{{ news.excerpt|truncatechars:200 }}</div>
+                                            <div class="news-meta-row">
+                                                <span><i class="fas fa-eye"></i> {{ news.stats.views|default:0 }}</span>
+                                                <span><i class="fas fa-thumbs-up"></i> {{ news.stats.likes|default:0 }}</span>
+                                                <span><i class="fas fa-tags"></i>
+                                                {% for tag in news.tags.all %}{{ tag.name }}{% if not forloop.last %}, {% endif %}{% empty %}Без тегов{% endfor %}
+                                            </span>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">На эту дату новостей не найдено.</div>
+                            {% endif %}
+                        {% else %}
+                            <div class="alert alert-info"><i class="fas fa-info-circle"></i> Нажмите на день с точкой, чтобы увидеть новости.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Блок популярных новостей -->
+        <div class="news-section" style="background: rgba(20,22,26,0.9); margin-top: -1px;">
+            <div class="news-container">
+                <h2 class="section-title">⭐ Популярные новости</h2>
+                <div class="news-list">
+                    {% for news in top_news %}
+                        <div class="news-item">
+                            <div class="news-header">
+                                <span class="news-badge"><i class="fas fa-fire"></i> {{ forloop.counter }} место</span>
+                                <span class="news-date"><i class="far fa-clock"></i> {{ news.publication_date|date:"d.m.Y" }}</span>
+                            </div>
+                            <h5 class="news-title" style="font-size: 1.3rem;"><a href="#">{{ news.title }}</a></h5>
+                            <div class="news-excerpt">{{ news.excerpt|truncatechars:150 }}</div>
+                            <div class="news-meta-row">
+                                <span><i class="fas fa-eye"></i> {{ news.stats.views|default:0 }} просмотров</span>
+                                <span><i class="fas fa-thumbs-up"></i> {{ news.stats.likes|default:0 }}</span>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <p style="color: #ccc;">Нет данных о популярных новостях.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Дополнительные информационные карточки -->
+        <div class="map-section" style="padding: 40px 0;">
+            <div class="news-container">
+                <div class="info-cards" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                    <div class="info-card" style="background: rgba(0,0,0,0.5);border-radius: 24px;padding: 24px;flex:1;min-width: 250px;border: 1px solid rgb(215 197 4 / 35%);">
+                        <i class="fas fa-chart-line" style="font-size: 2rem; color: #d7a204;"></i>
+                        <h3 style="color: #fff;">Новостная активность</h3>
+                        <p style="color: #ddd;">За последний месяц опубликовано <strong>{{ news_count_month }}</strong> новостей.</p>
+                        <p style="color: #ddd;">Всего новостей: <strong>{{ total_news_count }}</strong></p>
+                    </div>
+                    <div class="info-card" style="background: rgba(0,0,0,0.5);border-radius: 24px;padding: 24px;flex:1;min-width: 250px;border: 1px solid rgb(215 197 4 / 35%);">
+                        <i class="fas fa-calendar-week" style="font-size: 2rem; color: #d7a204;"></i>
+                        <h3 style="color: #fff;">Ближайшие новости</h3>
+                        <ul style="list-style: none; padding-left: 0; color: #ccc;">
+                            {% for upcoming in upcoming_news %}
+                                <li style="margin-bottom: 8px; border-bottom: 1px dashed #444; padding-bottom: 6px;">
+                                    {{ upcoming.publication_date|date:"d.m.Y" }} — {{ upcoming.title|truncatechars:40 }}
+                                </li>
+                            {% empty %}
+                                <li>Нет предстоящих новостей</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const days = document.querySelectorAll('.cal-day:not(.empty)');
+            days.forEach(day => {
+                day.addEventListener('click', function(e) {
+                    const date = this.dataset.date;
+                    if (date) {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('date', date);
+                        window.location.href = url.toString();
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}

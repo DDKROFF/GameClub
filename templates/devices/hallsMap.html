@@ -31,12 +31,6 @@
 
         <div id="hallsContainer"></div>
 
-        <div class="legend">
-            <div class="legend-item"><div class="legend-color available"></div> Свободно</div>
-            <div class="legend-item"><div class="legend-color reserved"></div> Забронировано</div>
-            <div class="legend-item"><div class="legend-color maintenance"></div> Обслуживание</div>
-            <div class="legend-item"><div class="legend-color in_use"></div> Используется</div>
-        </div>
     </div>
 </section>
 
@@ -48,11 +42,13 @@
             <p id="modalDeviceLocation"></p>
         </div>
         <div class="modal-body">
-            <table class="specs-table" id="specsTable">
-                </table>
+            <div id="modalBodyContent">
+                <table class="specs-table" id="specsTable"></table>
+            </div>
         </div>
         <div class="modal-footer">
-            <a href="#" id="bookBtn" class="book-action-btn">Забронировать устройство</a>
+            <button id="reserveBtn" class="book-action-btn">Забронировать</button>
+            <button id="startBtn" class="book-action-btn">Начать сессию</button>
         </div>
     </div>
 </div>

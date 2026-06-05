@@ -26,7 +26,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 20px;
-    margin: 40px 0 40px 0;
+    margin: 40px 30px 0px;
 }
 
 .club-title {
@@ -79,7 +79,6 @@
 
 /* Секция зала */
 .map-section {
-    margin-bottom: 60px;
     border-radius: 48px;
     padding: 30px;
 }
@@ -387,9 +386,16 @@
     .cell-label { font-size: 9px; }
     .grid-row { gap: 10px; }
     .map-section { padding: 20px; }
+    .club-header {
+        justify-content: center;
+    }
 }
 
 @media (max-width: 550px) {
+    .club-title {
+        font-size: 2rem;
+        font-weight: 700;
+    }
     .club-header {
         flex-direction: column;
         align-items: flex-start;
@@ -400,7 +406,7 @@
     }
     .hmbtn {
         padding: 8px 14px;
-        font-size: 0.8rem;
+        font-size: 0.5rem;
     }
 
     .hall-title {
@@ -450,11 +456,14 @@
     }
 
     .stats-row {
-        gap: 12px;
+        gap: 9px;
     }
     .stat-chip {
         padding: 6px 14px;
         font-size: 0.8rem;
+    }
+    .map-page {
+        padding: 0px 0 0px;
     }
 
     .modal-card {
@@ -472,7 +481,18 @@
         padding: 12px;
         font-size: 0.9rem;
     }
+    .controls {
+        gap: 11px;
+        width: 92%;
+    }
 }
+@media (max-width: 430px) {
+    .stat-chip {
+        font-size: 0.5rem;
+    }
+}
+
+
 
 /* ========== Очень узкие экраны (320px) ========== */
 @media (max-width: 320px) {
@@ -481,9 +501,11 @@
     }
     .hmbtn {
         padding: 6px 12px;
-        font-size: 0.7rem;
+        font-size: 0.5rem;
     }
-
+    .last-updated {
+        font-size: 0.6rem;
+    }
     .map-grid-wrapper {
         padding: 10px;
     }

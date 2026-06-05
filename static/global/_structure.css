@@ -1,10 +1,3 @@
-/* ========== ГЛОБАЛЬНЫЕ СТИЛИ ========== */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
 body {
     background-color: #0a0c0e;
     color: #e8eef2;
@@ -21,6 +14,136 @@ body {
     margin: 0 auto;
     padding: 0 40px;
     width: 100%;
+}
+
+.burger-icon {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 22px;
+    cursor: pointer;
+    z-index: 100;
+    position: relative;
+}
+
+.burger-icon span {
+    display: block;
+    height: 3px;
+    background: #e8eef2;
+    border-radius: 3px;
+    transition: all 0.3s;
+}
+
+/* Чекбокс для управления меню */
+.menu-toggle-checkbox {
+    display: none;
+}
+
+/* Мобильное меню (скрыто по умолчанию) */
+.mobile-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: rgba(12, 15, 18, 0.95);
+    backdrop-filter: blur(12px);
+    padding: 20px 30px;
+    flex-direction: column;
+    gap: 20px;
+    border-bottom: 2px solid rgba(244, 197, 66, 0.5);
+    z-index: 99;
+    transform: translateY(-10px);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s ease;
+}
+
+/* Когда чекбокс активен – показываем меню */
+.menu-toggle-checkbox:checked ~ .mobile-menu {
+    display: flex;
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Стили для ссылок в мобильном меню */
+.mobile-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.mobile-nav-link {
+    color: #cbd5e1;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.mobile-nav-link i {
+    color: var(--gold);
+    width: 24px;
+    text-align: center;
+}
+
+.mobile-nav-link:hover {
+    background: rgba(244, 197, 66, 0.1);
+    color: var(--gold);
+}
+
+.mobile-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 15px;
+    margin-top: 5px;
+}
+
+/* Имя пользователя в мобильном меню */
+.mobile-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--gold);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 5px 15px;
+}
+
+.mobile-user-info i {
+    font-size: 2rem;
+}
+
+.mobile-auth-btn {
+    color: #e8eef2;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 12px 15px;
+    border-radius: 8px;
+    background: rgba(244, 197, 66, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: background 0.2s;
+}
+
+.mobile-auth-btn i {
+    width: 24px;
+    text-align: center;
+    color: var(--gold);
+}
+
+.mobile-auth-btn:hover {
+    background: rgba(244, 197, 66, 0.2);
 }
 
 /* ========== ШАПКА ========== */
@@ -78,6 +201,112 @@ body {
     background: rgba(244, 197, 66, 0.1);
 }
 
+/* ========== ВЫПАДАЮЩЕЕ МЕНЮ ПОЛЬЗОВАТЕЛЯ (ДЕСКТОП) ========== */
+.user-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Кнопка-иконка профиля */
+.user-icon-btn {
+    background: none;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    color: var(--gold);
+    font-size: 1.8rem;
+    padding: 0;
+    outline: none;
+}
+
+.user-icon-btn:hover,
+.user-icon-btn:focus-visible {
+    background: rgba(244, 197, 66, 0.15);
+    box-shadow: 0 0 15px rgba(244, 197, 66, 0.3);
+    transform: scale(1.05);
+}
+
+/* Выпадающее меню */
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    background: rgba(18, 22, 25, 0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(244, 197, 66, 0.3);
+    border-radius: 12px;
+    min-width: 200px;
+    padding: 8px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    z-index: 10;
+}
+
+/* Стрелочка сверху */
+.dropdown-menu::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    right: 18px;
+    width: 16px;
+    height: 16px;
+    background: rgba(18, 22, 25, 0.95);
+    border-left: 1px solid rgba(244, 197, 66, 0.3);
+    border-top: 1px solid rgba(244, 197, 66, 0.3);
+    transform: rotate(45deg);
+}
+
+/* Показ меню при наведении на кнопку */
+.user-dropdown:hover .dropdown-menu,
+.user-icon-btn:focus + .dropdown-menu,
+.dropdown-menu:focus-within {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Пункты меню */
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: #e8eef2;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.95rem;
+    transition: background 0.2s, color 0.2s;
+}
+
+.dropdown-item i {
+    width: 20px;
+    color: var(--gold);
+    font-size: 1rem;
+}
+
+.dropdown-item:hover {
+    background: rgba(244, 197, 66, 0.1);
+    color: var(--gold);
+}
+
+/* Пункт Выход с красноватым оттенком */
+.dropdown-item.logout:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+.dropdown-item.logout:hover i {
+    color: #ef4444;
+}
+
 /* ========== ЯЗЫЧОК ========== */
 .navbar {
     background: transparent;
@@ -95,7 +324,7 @@ body {
     display: inline-flex;
     gap: 8px;
     padding: 0 8px;
-    box-shadow: inset 0 2px 5px rgba(0,0,0,0.3), 0 4px 12px rgba(0,0,0,0.25);
+    box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3), 0 4px 12px rgba(0, 0, 0, 0.25);
     border-bottom: 1px solid rgba(244, 197, 66, 0.35);
     flex-wrap: wrap;
     justify-content: center;
@@ -121,7 +350,7 @@ body {
 
 .tab-link:hover {
     color: var(--gold);
-    background: rgba(244,197,66,0.08);
+    background: rgba(244, 197, 66, 0.08);
     transform: translateY(-2px);
 }
 
@@ -180,6 +409,17 @@ body {
 
 /* ========== АДАПТИВНОСТЬ ========== */
 
+/* Большие планшеты / маленькие десктопы (от 1024 до 1400) */
+@media (max-width: 1400px) {
+    .container {
+        padding: 0 30px;
+    }
+
+    .favicon {
+        padding: 24px 30px;
+    }
+}
+
 /* Планшеты и небольшие ноутбуки (до 1024px) */
 @media (max-width: 1024px) {
     .container {
@@ -220,6 +460,39 @@ body {
     }
 }
 
+@media (max-width: 800px) {
+    /* Показываем бургер */
+    .burger-icon {
+        display: flex;
+        position: absolute;
+        top: 28px;
+        right: 30px;
+    }
+
+    /* Скрываем обычную навигацию и кнопки в header */
+    .navbar,
+    .favicon .user-menu,
+    .favicon .auth-buttons,
+    .favicon .user-dropdown {
+        display: none !important;
+    }
+
+    /* Корректируем шапку */
+    .favicon {
+        padding: 20px 30px;
+        position: relative;
+    }
+
+    .logo {
+        margin-right: auto;
+    }
+
+    /* Мобильное меню позиционируется относительно header */
+    .header {
+        position: relative;
+    }
+}
+
 /* Мобильные устройства (до 550px) */
 @media (max-width: 550px) {
     body {
@@ -244,7 +517,7 @@ body {
     }
 
     .navbar {
-        position: static; /* убираем absolute, чтобы навигация не перекрывалась */
+        position: static;
         margin-top: 10px;
     }
 
@@ -262,7 +535,7 @@ body {
         justify-content: center;
         padding: 12px 0;
         font-size: 0.95rem;
-        border-bottom: 1px solid rgba(255,255,255,0.05);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .footer {
@@ -280,18 +553,16 @@ body {
     }
 }
 
-/* Большие планшеты / маленькие десктопы (от 1024 до 1400) */
-@media (max-width: 1400px) and (min-width: 1025px) {
-    .container {
-        padding: 0 30px;
-    }
-
-    .favicon {
-        padding: 24px 30px;
-    }
-}
-
 @media (max-width: 450px) {
+    .burger-icon {
+        right: 20px;
+        top: 20px;
+    }
+
+    .mobile-menu {
+        padding: 15px 20px;
+    }
+
     /* Скрываем "СИСТЕМНЫЕ ХАРАКТЕРИСТИКИ" и "ДЛЯ КЛУБА" */
     .footer-col:nth-child(1),
     .footer-col:nth-child(2) {
@@ -317,10 +588,10 @@ body {
     }
 }
 
-/* ========== Дополнительно для очень маленьких экранов (до 320px) ========== */
+/* ========== Очень маленькие экраны (до 320px) ========== */
 @media (max-width: 320px) {
     .footer-grid {
-        grid-template-columns: 1fr;   /* одна колонка */
+        grid-template-columns: 1fr;
     }
 
     .footer-col h4 {

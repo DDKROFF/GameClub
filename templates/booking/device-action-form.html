@@ -1,0 +1,186 @@
+<div class="fragment-device-action" id="specModal"> <style>
+    .fragment-device-action { font-family: 'Inter', sans-serif; color: #fff; padding: 5px; width: 100%; box-sizing: border-box; }
+    .fragment-device-action form { width: 100% !important; display: block !important; }
+    .fragment-device-action .action-form-group { margin-bottom: 16px !important; display: flex !important; flex-direction: column !important; align-items: flex-start !important; gap: 6px !important; width: 100% !important; box-sizing: border-box !important; }
+    .fragment-device-action .action-form-group label { font-size: 0.8rem !important; font-weight: 700 !important; color: #94a3b8 !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; margin: 0 !important; display: block !important; }
+    .fragment-device-action form .action-form-group .form-control, .fragment-device-action form .action-form-group select, .fragment-device-action form .action-form-group input { width: 100% !important; padding: 10px 12px !important; background: rgba(30, 41, 59, 0.9) !important; border: 1px solid rgba(255, 255, 255, 0.15) !important; border-radius: 8px !important; color: #ffffff !important; font-size: 0.95rem !important; height: 42px !important; box-sizing: border-box !important; }
+    .fragment-device-action form .action-form-group .form-control:focus { outline: none !important; border-color: #F4C542 !important; background: #1e293b !important; box-shadow: 0 0 0 3px rgba(244, 197, 66, 0.2) !important; }
+    .fragment-device-action .row-fields { display: flex !important; gap: 12px !important; width: 100% !important; box-sizing: border-box !important; }
+    .fragment-device-action .row-fields .field-tariff { flex: 2 1 0% !important; }
+    .fragment-device-action .row-fields .field-hours { flex: 1 1 0% !important; }
+    #costCalculatorDisplay { margin: 18px 0 10px; padding: 12px; background: rgba(244, 197, 66, 0.08); border: 1px dashed rgba(244, 197, 66, 0.35); border-radius: 8px; font-weight: 700; color: #F4C542; font-size: 1rem; text-align: center; display: none; width: 100%; box-sizing: border-box; }
+    #calculatedAmount { font-size: 1.15rem; text-shadow: 0 0 8px rgba(244, 197, 66, 0.25); }
+    .fragment-device-action .modal-actions { margin-top: 18px !important; width: 100% !important; }
+    .fragment-device-action .book-action-btn { width: 100% !important; padding: 12px !important; background: linear-gradient(135deg, #F4C542, #dbad2a) !important; border: none !important; border-radius: 8px !important; color: #0f172a !important; font-size: 0.95rem !important; font-weight: 700 !important; cursor: pointer !important; transition: all 0.2s ease !important; text-transform: uppercase !important; display: block !important; }
+    .form-feedback { margin-top: 12px; width: 100%; }
+    .form-feedback .error, .form-feedback .success { padding: 10px; border-radius: 6px; font-size: 0.85rem; text-align: center; width: 100%; box-sizing: border-box; }
+    .form-feedback .error { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+    .form-feedback .success { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+  </style>
+
+  <form id="deviceActionForm" method="post" action="{% url 'booking:device_action' %}">
+    {% csrf_token %}
+    {{ form.action }}
+
+    <div class="action-form-group">
+      <label for="visibleActionSelect">Выберите действие</label>
+      <select id="visibleActionSelect" class="form-control">
+        <option value="reserve">Забронировать устройство</option>
+        <option value="start">Начать сессию</option>
+        <option value="extend">Продлить сессию</option>
+      </select>
+    </div>
+
+    <div class="action-form-group">
+      <label for="id_device_inventory">Инвентарный номер</label>
+      <input type="text" name="device_inventory" class="form-control" id="id_device_inventory" readonly required>
+    </div>
+
+    <div class="action-form-group for-reserve" style="display: none;">
+      <label for="id_duration_minutes">Длительность брони (мин)</label>
+      <input type="number" name="duration_minutes" class="form-control" id="id_duration_minutes" min="1" placeholder="Например: 15">
+    </div>
+
+    <div class="row-fields for-start-extend" style="display: none;">
+      <div class="action-form-group field-tariff">
+        <label for="id_tariff">Тариф</label>
+        {{ form.tariff }} </div>
+      <div class="action-form-group field-hours">
+        <label for="id_hours">Часы</label>
+        <input type="number" name="hours" class="form-control" id="id_hours" step="0.5" min="0.5">
+      </div>
+    </div>
+
+    <div id="costCalculatorDisplay">Итого к оплате: <span id="calculatedAmount">0</span> ₽</div>
+
+    <div class="modal-actions">
+      <button type="submit" class="book-action-btn">Подтвердить</button>
+    </div>
+  </form>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const form = document.getElementById('deviceActionForm');
+      const vSel = document.getElementById('visibleActionSelect');
+      const actHid = form.querySelector('input[name="action"]');
+      const divRes = form.querySelector('.for-reserve');
+      const divStart = form.querySelector('.for-start-extend');
+      const tariffSelect = form.querySelector('select[name="tariff"]');
+      const hoursInput = form.querySelector('input[name="hours"]');
+      const costDisplay = document.getElementById('costCalculatorDisplay');
+      const calculatedAmount = document.getElementById('calculatedAmount');
+      const inventoryInput = document.getElementById('id_device_inventory');
+
+      // --- ЛОГИКА АВТОЗАПОЛНЕНИЯ (перехват клика по ПК на карте) ---
+      // Убедись, что на твоей карте у ПК есть класс "open-device-action-modal" и атрибут "data-inventory"
+      const deviceButtons = document.querySelectorAll('.open-device-action-modal');
+      deviceButtons.forEach(button => {
+          button.addEventListener('click', function() {
+              const inventoryNumber = this.getAttribute('data-inventory');
+              if (inventoryInput) inventoryInput.value = inventoryNumber;
+
+              // Если у тебя модалка открывается через класс active
+              const specModal = document.getElementById('specModal');
+              if (specModal) specModal.classList.add('active');
+
+              syncFields();
+              let feedback = form.querySelector('.form-feedback');
+              if (feedback) feedback.innerHTML = '';
+          });
+      });
+
+      // --- ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ПОЛЕЙ ---
+      function syncFields(){
+        const val = vSel.value;
+        if(actHid) actHid.value = val;
+
+        if(val === 'reserve'){
+          divRes.style.display = 'flex';
+          divStart.style.display = 'none';
+          costDisplay.style.display = 'none';
+        } else {
+          divRes.style.display = 'none';
+          divStart.style.display = 'flex';
+          calculateLiveCost();
+        }
+      }
+
+      // --- ЛОГИКА РАСЧЕТА ЦЕНЫ ---
+      function calculateLiveCost() {
+        if (vSel.value === 'reserve' || !tariffSelect || !hoursInput) {
+          costDisplay.style.display = 'none';
+          return;
+        }
+        const selectedOption = tariffSelect.options[tariffSelect.selectedIndex];
+        const hours = parseFloat(hoursInput.value);
+
+        if (!selectedOption || !selectedOption.value || isNaN(hours) || hours <= 0) {
+          costDisplay.style.display = 'none';
+          return;
+        }
+
+        const match = selectedOption.text.match(/([\d.]+)\s*руб/);
+        if (match && match[1]) {
+          calculatedAmount.textContent = (parseFloat(match[1]) * hours).toFixed(2);
+          costDisplay.style.display = 'block';
+        } else {
+          costDisplay.style.display = 'none';
+        }
+      }
+
+      vSel.addEventListener('change', syncFields);
+      if (tariffSelect) tariffSelect.addEventListener('change', calculateLiveCost);
+      if (hoursInput) hoursInput.addEventListener('input', calculateLiveCost);
+      syncFields();
+
+      // --- ЛОГИКА ОТПРАВКИ ФОРМЫ (AJAX) ---
+      form.addEventListener('submit', async function(e){
+        e.preventDefault();
+
+        let feedback = form.querySelector('.form-feedback');
+        if(!feedback){
+          feedback = document.createElement('div');
+          feedback.className = 'form-feedback';
+          form.appendChild(feedback);
+        }
+        feedback.innerHTML = '<div class="success" style="background: rgba(244,197,66,0.1); color: #F4C542;">Обработка запроса...</div>';
+
+        try {
+          const res = await fetch(form.action, {
+            method: 'POST',
+            body: new FormData(form),
+            headers: {'X-Requested-With': 'XMLHttpRequest'}
+          });
+          const json = await res.json();
+
+          if(!res.ok){
+            feedback.innerHTML = '';
+            let errBlock = document.createElement('div');
+            errBlock.className = 'error';
+
+            if(json.errors){
+              let errText = '';
+              for(let k in json.errors) errText += `${json.errors[k].join('<br>')}<br>`;
+              errBlock.innerHTML = errText;
+            } else {
+              errBlock.innerHTML = json.error || 'Произошла ошибка сервера';
+            }
+            feedback.appendChild(errBlock);
+            return;
+          }
+
+          feedback.innerHTML = `<div class="success">${json.message}</div>`;
+          window.dispatchEvent(new Event('halls:refresh')); // Обновляем карту
+
+          setTimeout(() => {
+            const specModal = document.getElementById('specModal');
+            if(specModal) specModal.classList.remove('active');
+          }, 1500);
+
+        } catch(err){
+          feedback.innerHTML = `<div class="error">Ошибка сети или сервер недоступен</div>`;
+        }
+      });
+    });
+  </script>
+</div>

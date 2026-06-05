@@ -1,0 +1,8 @@
+<div class="fragment-reserve">
+  <form id="reserveForm" method="post" action="{% url 'booking:reserve' %}">{% csrf_token %}
+    {{ form.as_p }}
+    <div class="modal-actions">
+      <button type="submit" class="book-action-btn">Забронировать</button>
+    </div>
+  </form>
+</div>
